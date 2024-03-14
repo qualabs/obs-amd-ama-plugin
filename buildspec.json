@@ -33,15 +33,15 @@
     },
     "platformConfig": {
         "macos": {
-            "bundleId": "com.example.obs-plugintemplate"
+            "bundleId": "com.example.obs-amd-ama"
         }
     },
-    "name": "obs-plugintemplate",
-    "displayName": "OBS Plugin Template",
-    "version": "1.0.0",
-    "author": "Your Name Here",
-    "website": "https://example.com",
-    "email": "me@example.com",
+    "name": "obs-amd-ama",
+    "displayName": "OBS AMD AMA Plugin",
+    "version": "0.0.1",
+    "author": "Advanced Micro Devices, Inc",
+    "website": "https://www.amd.com",
+    "email": "support@amd.com",
     "uuids": {
         "windowsApp": "00000000-0000-0000-0000-000000000000"
     }

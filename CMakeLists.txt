@@ -10,8 +10,17 @@ option(ENABLE_QT "Use Qt functionality" OFF)
 include(compilerconfig)
 include(defaults)
 include(helpers)
+include_directories(/usr/include/obs/ /opt/amd/ama/ma35/include/xma /opt/amd/ama/ma35/include/xrm
+                    /opt/amd/ama/ma35/include/xrm_interface)
+link_directories(/opt/amd/ama/ma35/lib)
 
 add_library(${CMAKE_PROJECT_NAME} MODULE)
+target_link_libraries(
+  ${CMAKE_PROJECT_NAME}
+  PUBLIC xma
+  PUBLIC xrm
+  PUBLIC xrm_interface
+  PUBLIC xrm_encoder_plugin)
 
 find_package(libobs REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
@@ -34,6 +43,6 @@ if(ENABLE_QT)
                AUTORCC ON)
 endif()
 
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/plugin-main.c)
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/ama-plugin-main.c src/ama-encoder.c src/ama-scaler.c)
 
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})
