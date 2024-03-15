@@ -79,8 +79,8 @@ static void enc_xma_params_update(EncoderProperties *enc_props,
 }
 
 int32_t enc_get_xma_props(XmaHandle handle, EncoderProperties *enc_props,
-			       XmaFilterProperties *xma_upload_props,
-			       XmaEncoderProperties *xma_enc_props)
+			  XmaFilterProperties *xma_upload_props,
+			  XmaEncoderProperties *xma_enc_props)
 {
 
 	/* Initialize upload properties */
@@ -293,8 +293,7 @@ int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 	enc_ctx->xma_enc_props.handle = enc_ctx->handle;
 
 	enc_get_xma_props(enc_ctx->handle, &enc_ctx->enc_props,
-			       &enc_ctx->xma_upload_props,
-			       &enc_ctx->xma_enc_props);
+			  &enc_ctx->xma_upload_props, &enc_ctx->xma_enc_props);
 
 	enc_ctx->enc_frame_props.format = enc_ctx->xma_enc_props.format;
 	enc_ctx->enc_frame_props.sw_format = enc_ctx->xma_enc_props.sw_format;

@@ -127,7 +127,9 @@ typedef struct {
 int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 		       EncoderCtx *enc_ctx);
 
-int32_t encoder_process_frame(struct encoder_frame *frame, struct encoder_packet *packet, bool *received_packet, EncoderCtx *enc_ctx);
+int32_t encoder_process_frame(struct encoder_frame *frame,
+			      struct encoder_packet *packet,
+			      bool *received_packet, EncoderCtx *enc_ctx);
 
 int32_t encoder_destroy(EncoderCtx *enc_ctx);
 
