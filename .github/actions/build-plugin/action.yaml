@@ -35,7 +35,7 @@ runs:
         wget -qO - https://www.xilinx.com/support/download/2018-2-1/xilinx-master-signing-key.asc | sudo apt-key add -
         echo "deb [trusted=yes] https://packages.xilinx.com/artifactory/debian-packages $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/xilinx.list
         sudo apt update
-        sudo apt install amd-ama-driver amd-ama-core amd-ama-xma
+        sudo DEBIAN_FRONTEND=noninteractive apt -yq install amd-ama-core amd-ama-xma
         echo ::endgroup::
 
     - name: Run Ubuntu Build
