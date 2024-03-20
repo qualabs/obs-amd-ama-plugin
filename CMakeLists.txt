@@ -17,7 +17,7 @@ link_directories(/opt/amd/ama/ma35/lib)
 add_library(${CMAKE_PROJECT_NAME} MODULE)
 target_link_libraries(
   ${CMAKE_PROJECT_NAME}
-  PUBLIC hugetlbfs
+  PUBLIC hugetlbfs-2.23
   PUBLIC xma
   PUBLIC xrm
   PUBLIC xrm_interface
