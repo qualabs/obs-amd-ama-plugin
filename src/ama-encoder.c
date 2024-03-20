@@ -246,6 +246,8 @@ int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 {
 	int ret = XMA_SUCCESS;
 
+	deque_init(enc_ctx->dtsQueue);
+
 	enc_ctx->settings = settings;
 	enc_ctx->enc_handle = encoder;
 	initialize_encoder_context(enc_ctx);
@@ -258,7 +260,9 @@ int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 	xrm_props.fps_num = enc_ctx->enc_props.fps;
 	xrm_props.fps_den = 1;
 	xrm_props.is_la_enabled = false;
+	xrm_props.enc_cores = 1;
 	enc_ctx->xrm_enc_ctx.slice_id = enc_ctx->enc_props.slice;
+	strncpy(xrm_props.preset, "medium", 6);
 
 	ret = xrm_enc_reserve(&enc_ctx->xrm_enc_ctx,
 			      enc_ctx->enc_props.device_id,
@@ -416,6 +420,9 @@ int32_t encoder_process_frame(struct encoder_frame *frame,
 			p += total_line_size;
 		}
 	}
+
+	deque_push_back(enc_ctx->dtsQueue, &frame->pts, sizeof(int64_t));
+
 	enc_ctx->input_xframe->frame_rate.numerator =
 		enc_ctx->xma_enc_props.framerate.numerator;
 	enc_ctx->input_xframe->frame_rate.denominator =
@@ -448,7 +455,11 @@ int32_t encoder_process_frame(struct encoder_frame *frame,
 		memcpy(packet->data, output_xma_buffer->data.buffer, recv_size);
 		packet->size = recv_size;
 		packet->pts = output_xma_buffer->pts;
-		packet->dts = output_xma_buffer->pts;
+
+		int64_t dts;
+		int fps_denominator = 1;
+    	deque_pop_front(enc_ctx->dtsQueue, &dts, sizeof(int64_t));
+		packet->dts = dts - (enc_ctx->enc_props.num_bframes * fps_denominator);
 		packet->keyframe = obs_avc_keyframe(
 			output_xma_buffer->data.buffer, recv_size);
 		obs_log(LOG_INFO, "poc: %d, keyframe: %d",
@@ -503,7 +514,10 @@ int32_t encoder_destroy(EncoderCtx *enc_ctx)
 	xma_log_release(enc_ctx->log);
 	enc_ctx->log = NULL;
 
+	deque_free(enc_ctx->dtsQueue);
+
 	bfree(enc_ctx);
+
 
 	return 0;
 }

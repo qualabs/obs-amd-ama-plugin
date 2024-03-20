@@ -103,7 +103,6 @@ void ama_destroy(void *data)
 {
 	obs_log(LOG_INFO, "ama_destroy\n");
 	encoder_destroy(data);
-	// int32_t scaler_destroy(scl_ctx);
 }
 
 bool ama_encode(void *enc_ctx, struct encoder_frame *frame,

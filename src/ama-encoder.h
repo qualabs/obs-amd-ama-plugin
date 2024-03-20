@@ -6,6 +6,7 @@
 #include <xma.h>
 #include <xrm.h>
 #include <xrm_enc_interface.h>
+#include <util/deque.h>
 
 #include <fcntl.h>
 #include <signal.h>
@@ -249,6 +250,7 @@ typedef struct {
 	FILE *stat_data;
 	FILE *dyn_params_fp;
 	XmaFrameSideData *dyn_params;
+	struct deque *dtsQueue;
 } EncoderCtx;
 
 int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
