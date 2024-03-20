@@ -75,6 +75,12 @@ static void enc_xma_params_update(EncoderProperties *enc_props,
 	custom_xma_params[*param_cnt].value = &(enc_props->dynamic_gop);
 	(*param_cnt)++;
 
+	custom_xma_params[*param_cnt].name = XMA_ENC_PARAM_CORES;
+	custom_xma_params[*param_cnt].type = XMA_INT32;
+	custom_xma_params[*param_cnt].length = sizeof(enc_props->cores);
+	custom_xma_params[*param_cnt].value = &(enc_props->cores);
+	(*param_cnt)++;
+
 	return;
 }
 
@@ -99,10 +105,6 @@ int32_t enc_get_xma_props(XmaHandle handle, EncoderProperties *enc_props,
 	xma_upload_props->output.height = enc_props->height;
 	xma_upload_props->output.framerate.numerator = enc_props->fps;
 	xma_upload_props->output.framerate.denominator = 1;
-	xma_enc_props->hwencoder_type = enc_props->codec_id;
-	xma_enc_props->param_cnt = 0;
-	xma_enc_props->params = (XmaParameter *)calloc(
-		1, ENC_MAX_PARAMS * sizeof(XmaParameter));
 
 	xma_enc_props->handle = handle;
 	/* Initialize encoder properties */
@@ -169,6 +171,7 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->qp_mode = ENC_DEFAULT_QP_MODE;
 	enc_props->rc_mode = ENC_RC_MODE_DEFAULT;
 	enc_props->preset = XMA_ENC_PRESET_DEFAULT;
+	enc_props->cores = XMA_ENC_CORES_DEFAULT;
 
 	enc_props->profile = ENC_H264_MAIN;
 	enc_props->level = ENC_DEFAULT_LEVEL;
@@ -259,6 +262,8 @@ int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 	xrm_props.height = enc_ctx->enc_props.height;
 	xrm_props.fps_num = enc_ctx->enc_props.fps;
 	xrm_props.fps_den = 1;
+	xrm_props.enc_cores = enc_ctx->enc_props.cores;
+	strcpy(xrm_props.preset, "medium");
 	xrm_props.is_la_enabled = false;
 	xrm_props.enc_cores = 1;
 	enc_ctx->xrm_enc_ctx.slice_id = enc_ctx->enc_props.slice;
@@ -283,8 +288,17 @@ int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 	strcpy(enc_ctx->app_name, "ma35_encoder_app");
 	xma_init_param.app_name = enc_ctx->app_name;
 	xma_init_param.device = enc_ctx->enc_props.device_id;
-	xma_init_param.params = NULL;
-	xma_init_param.param_cnt = 0;
+
+	XmaParameter params[1];
+	uint32_t api_version = XMA_API_VERSION_1_1;
+
+	params[0].name = (char *)XMA_API_VERSION;
+	params[0].type = XMA_UINT32;
+	params[0].length = sizeof(uint32_t);
+	params[0].value = &api_version;
+
+	xma_init_param.params = params;
+	xma_init_param.param_cnt = 1;
 
 	if ((ret = xma_initialize(enc_ctx->filter_log, &xma_init_param,
 				  &enc_ctx->handle)) != XMA_SUCCESS) {
