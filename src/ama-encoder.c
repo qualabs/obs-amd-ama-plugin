@@ -269,9 +269,7 @@ int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 	xrm_props.enc_cores = enc_ctx->enc_props.cores;
 	strcpy(xrm_props.preset, "medium");
 	xrm_props.is_la_enabled = false;
-	xrm_props.enc_cores = 1;
 	enc_ctx->xrm_enc_ctx.slice_id = enc_ctx->enc_props.slice;
-	strncpy(xrm_props.preset, "medium", 6);
 
 	ret = xrm_enc_reserve(&enc_ctx->xrm_enc_ctx,
 			      enc_ctx->enc_props.device_id,
