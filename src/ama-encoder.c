@@ -413,7 +413,7 @@ int32_t encoder_send_frame(XmaFrame *input_xframe, EncoderCtx *enc_ctx)
 
 int64_t get_dts(EncoderCtx *enc_ctx)
 {
-	int64_t dts;
+	int64_t dts = 0;
 	int fps_denominator = 1;
 	dts = enc_ctx->dts_array.array[0];
 	da_erase(enc_ctx->dts_array, 0);
@@ -421,22 +421,22 @@ int64_t get_dts(EncoderCtx *enc_ctx)
 	return dts;
 }
 
-bool get_keyframe(EncoderCtx *enc_ctx, XmaDataBuffer *output_xma_buffer,
-		  int32_t recv_size)
+bool is_keyframe(EncoderCtx *enc_ctx, XmaDataBuffer *output_xma_buffer,
+		 int32_t recv_size)
 {
 	switch (enc_ctx->codec) {
 	case ENCODER_ID_H264:
 		return obs_avc_keyframe(output_xma_buffer->data.buffer,
-					    recv_size);
+					recv_size);
 	case ENCODER_ID_HEVC:
 		return obs_hevc_keyframe(output_xma_buffer->data.buffer,
-					     recv_size);
+					 recv_size);
 	case ENCODER_ID_AV1:
 		return false;
 	default:
-		return false;	
+		return false;
 	}
-	return keyframe;
+	return false;
 }
 
 void get_headers(EncoderCtx *enc_ctx, struct encoder_packet *packet)
@@ -524,7 +524,7 @@ int32_t encoder_process_frame(struct encoder_frame *frame,
 		packet->pts = output_xma_buffer->pts;
 		packet->dts = get_dts(enc_ctx);
 		packet->keyframe =
-			get_keyframe(enc_ctx, output_xma_buffer, recv_size);
+			is_keyframe(enc_ctx, output_xma_buffer, recv_size);
 		obs_log(LOG_INFO, "dts: %d, keyframe: %d", packet->dts,
 			packet->keyframe);
 		packet->type = OBS_ENCODER_VIDEO;
