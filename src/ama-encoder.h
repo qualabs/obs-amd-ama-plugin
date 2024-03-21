@@ -211,6 +211,7 @@ typedef struct {
 	int32_t lookahead_depth;
 	int32_t tune_metrics;
 	int32_t dynamic_gop;
+	int32_t cores;
 	char expert_options[2048];
 	int32_t latency_logging;
 } EncoderProperties;
