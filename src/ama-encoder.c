@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <obs-avc.h>
 #include <obs-hevc.h>
+#include <obs-av1.h>
 #include "ama-encoder.h"
 
 static void enc_xma_params_update(EncoderProperties *enc_props,
@@ -174,10 +175,17 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->preset = XMA_ENC_PRESET_DEFAULT;
 	enc_props->cores = XMA_ENC_CORES_DEFAULT;
 
-	if (enc_ctx->codec == ENCODER_ID_H264)
+	switch (enc_ctx->codec) {
+	case ENCODER_ID_H264:
 		enc_props->profile = ENC_H264_MAIN;
-	else if (enc_ctx->codec == ENCODER_ID_HEVC)
+		break;
+	case ENCODER_ID_HEVC:
 		enc_props->profile = ENC_HEVC_MAIN;
+		break;
+	case ENCODER_ID_AV1:
+		enc_props->profile = ENC_AV1_MAIN;
+		break;
+	}
 	enc_props->level = ENC_DEFAULT_LEVEL;
 	enc_props->tier = -1;
 	enc_props->lookahead_depth = ENC_MIN_LOOKAHEAD_DEPTH;
@@ -269,11 +277,12 @@ int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 	xrm_props.enc_cores = enc_ctx->enc_props.cores;
 	strcpy(xrm_props.preset, "medium");
 	xrm_props.is_la_enabled = false;
+	bool isAV1 = enc_ctx->codec == ENCODER_ID_AV1;
 	enc_ctx->xrm_enc_ctx.slice_id = enc_ctx->enc_props.slice;
 
 	ret = xrm_enc_reserve(&enc_ctx->xrm_enc_ctx,
 			      enc_ctx->enc_props.device_id,
-			      enc_ctx->enc_props.slice, false, false,
+			      enc_ctx->enc_props.slice, isAV1, false,
 			      &xrm_props);
 	if (ret == XRM_ERROR) {
 		return ret;
@@ -435,6 +444,8 @@ bool get_keyframe(EncoderCtx *enc_ctx, XmaDataBuffer *output_xma_buffer,
 					     recv_size);
 		break;
 	case ENCODER_ID_AV1:
+		keyframe = obs_av1_keyframe(output_xma_buffer->data.buffer,
+					    recv_size);
 		break;
 	}
 	return keyframe;
@@ -460,6 +471,10 @@ void get_headers(EncoderCtx *enc_ctx, struct encoder_packet *packet)
 					 &enc_ctx->sei_size);
 		break;
 	case ENCODER_ID_AV1:
+		obs_extract_av1_headers(packet->data, packet->size,
+					&new_packet.data, &new_packet.size,
+					&enc_ctx->header_data,
+					&enc_ctx->header_size);
 		break;
 	}
 }
@@ -526,8 +541,6 @@ int32_t encoder_process_frame(struct encoder_frame *frame,
 		packet->dts = get_dts(enc_ctx);
 		packet->keyframe =
 			get_keyframe(enc_ctx, output_xma_buffer, recv_size);
-		obs_log(LOG_INFO, "dts: %d, keyframe: %d", packet->dts,
-			packet->keyframe);
 		packet->type = OBS_ENCODER_VIDEO;
 		if (enc_ctx->num_frames_received == 0) {
 			get_headers(enc_ctx, packet);
