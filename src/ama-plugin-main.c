@@ -98,6 +98,8 @@ void *ama_create_av1(obs_data_t *settings, obs_encoder_t *encoder)
 	obs_log(LOG_INFO,
 		"ama_create_av1, create function still to be implemented\n");
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
+	enc_ctx->codec = ENCODER_ID_AV1;
+	encoder_create(settings, encoder, enc_ctx);
 
 	return enc_ctx;
 }
