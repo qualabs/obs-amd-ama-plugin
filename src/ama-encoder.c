@@ -424,18 +424,17 @@ int64_t get_dts(EncoderCtx *enc_ctx)
 bool get_keyframe(EncoderCtx *enc_ctx, XmaDataBuffer *output_xma_buffer,
 		  int32_t recv_size)
 {
-	bool keyframe = false;
 	switch (enc_ctx->codec) {
 	case ENCODER_ID_H264:
-		keyframe = obs_avc_keyframe(output_xma_buffer->data.buffer,
+		return obs_avc_keyframe(output_xma_buffer->data.buffer,
 					    recv_size);
-		break;
 	case ENCODER_ID_HEVC:
-		keyframe = obs_hevc_keyframe(output_xma_buffer->data.buffer,
+		return obs_hevc_keyframe(output_xma_buffer->data.buffer,
 					     recv_size);
-		break;
 	case ENCODER_ID_AV1:
-		break;
+		return false;
+	default:
+		return false;	
 	}
 	return keyframe;
 }
