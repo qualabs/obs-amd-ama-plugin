@@ -6,6 +6,7 @@
 #include <xma.h>
 #include <xrm.h>
 #include <xrm_enc_interface.h>
+#include <util/darray.h>
 
 #include <fcntl.h>
 #include <signal.h>
@@ -22,7 +23,7 @@
 #define ENC_DEFAULT_LOG_LEVEL XMA_ERROR_LOG
 #define ENC_DEFAULT_LOG_LOCATION XMA_LOG_TYPE_CONSOLE
 #define ENC_DEFAULT_LOG_FILE (XLNX_ENC_APP_MODULE ".log")
-#define ENC_MIN_NUM_B_FRAMES -1
+#define ENC_MIN_NUM_B_FRAMES 0
 #define ENC_MAX_NUM_B_FRAMES 3
 #define ENC_MAX_NUM_B_FRAMES_AV1 7
 #define ENC_DEFAULT_TIER -1
@@ -222,6 +223,8 @@ typedef struct DynIdrFrames {
 	size_t len_idr_arr;
 } DynIdrFrames;
 
+typedef DARRAY(int64_t) int64_array_t;
+
 /* Encoder Context */
 typedef struct {
 	char app_name[32];
@@ -246,10 +249,11 @@ typedef struct {
 	XmaFrame *input_xframe;
 	XmaEncoderProperties xma_enc_props;
 	bool flush_sent;
-	int32_t pts;
 	FILE *stat_data;
 	FILE *dyn_params_fp;
 	XmaFrameSideData *dyn_params;
+	int64_array_t dts_array;
+	int32_t codec;
 } EncoderCtx;
 
 int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
