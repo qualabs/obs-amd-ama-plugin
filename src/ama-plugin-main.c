@@ -72,6 +72,7 @@ void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_h264\n");
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
+	enc_ctx->codec = ENCODER_ID_H264;
 	encoder_create(settings, encoder, enc_ctx);
 
 	return enc_ctx;
@@ -84,6 +85,8 @@ void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 	obs_log(LOG_INFO,
 		"ama_create_hevc, create function still to be implemented\n");
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
+	enc_ctx->codec = ENCODER_ID_HEVC;
+	encoder_create(settings, encoder, enc_ctx);
 
 	return enc_ctx;
 }
