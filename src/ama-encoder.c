@@ -448,18 +448,18 @@ void get_headers(EncoderCtx *enc_ctx, struct encoder_packet *packet)
 	switch (enc_ctx->codec) {
 	case ENCODER_ID_H264:
 		obs_extract_avc_headers(packet->data, packet->size,
+					&new_packet.data, &new_packet.size,
+					&enc_ctx->header_data,
+					&enc_ctx->header_size,
+					&enc_ctx->sei_data, &enc_ctx->sei_size);
+		break;
+	case ENCODER_ID_HEVC:
+		obs_extract_hevc_headers(packet->data, packet->size,
 					 &new_packet.data, &new_packet.size,
 					 &enc_ctx->header_data,
 					 &enc_ctx->header_size,
 					 &enc_ctx->sei_data,
 					 &enc_ctx->sei_size);
-		break;
-	case ENCODER_ID_HEVC:
-		obs_extract_hevc_headers(packet->data, packet->size,
-					&new_packet.data, &new_packet.size,
-					&enc_ctx->header_data,
-					&enc_ctx->header_size,
-					&enc_ctx->sei_data, &enc_ctx->sei_size);
 		break;
 	case ENCODER_ID_AV1:
 		break;
@@ -526,8 +526,8 @@ int32_t encoder_process_frame(struct encoder_frame *frame,
 		packet->size = recv_size;
 		packet->pts = output_xma_buffer->pts;
 		packet->dts = get_dts(enc_ctx);
-		packet->keyframe = get_keyframe(enc_ctx, 
-			output_xma_buffer, recv_size);
+		packet->keyframe =
+			get_keyframe(enc_ctx, output_xma_buffer, recv_size);
 		obs_log(LOG_INFO, "dts: %d, keyframe: %d", packet->dts,
 			packet->keyframe);
 		packet->type = OBS_ENCODER_VIDEO;
