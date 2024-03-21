@@ -442,7 +442,7 @@ bool is_keyframe(EncoderCtx *enc_ctx, XmaDataBuffer *output_xma_buffer,
 					 recv_size);
 	case ENCODER_ID_AV1:
 		return obs_av1_keyframe(output_xma_buffer->data.buffer,
-					    recv_size);
+					recv_size);
 		break;
 	default:
 		return false;
