@@ -330,7 +330,7 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "b_frames",
 				 ENC_DEFAULT_NUM_B_FRAMES);
 	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_DEFAULT);
-	obs_data_set_default_int(settings, "qp", 1);
+	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
 	obs_data_set_default_int(settings, "level", ENC_DEFAULT_LEVEL);
 }
