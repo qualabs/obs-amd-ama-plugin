@@ -34,6 +34,7 @@ OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 #define TEXT_BITRATE obs_module_text("Bitrate")
 #define TEXT_MAX_BITRATE obs_module_text("Max Bitrate")
 #define TEXT_QP obs_module_text("QP")
+#define TEXT_B_FRAMES obs_module_text("B Frames")
 #define TEXT_PROFILE obs_module_text("Profile")
 #define TEXT_LEVEL obs_module_text("Level")
 #define TEXT_NONE obs_module_text("None")
@@ -129,7 +130,7 @@ bool ama_update(void *data, obs_data_t *settings)
 static bool rate_control_modified(obs_properties_t *ppts, obs_property_t *p,
 				  obs_data_t *settings)
 {
-	int rc = (int)obs_data_get_int(settings, "rate_control");
+	int rc = (int)obs_data_get_int(settings, "control_rate");
 	bool cvbr_or_vbr = rc == ENC_RC_MODE_VBR || rc == ENC_RC_MODE_CVBR;
 	bool cvbr_or_vbr_or_cbr = rc == ENC_RC_MODE_VBR ||
 				  rc == ENC_RC_MODE_CVBR ||
@@ -156,13 +157,11 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	obs_property_t *list;
 	obs_property_t *headers;
 
-	list = obs_properties_add_list(props, "rate_control", TEXT_RATE_CONTROL,
+	list = obs_properties_add_list(props, "control_rate", TEXT_RATE_CONTROL,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(list, "CBR", ENC_RC_MODE_CBR);
-	obs_property_list_add_int(list, "CVBR", ENC_RC_MODE_CVBR);
-	obs_property_list_add_int(list, "VBR", ENC_RC_MODE_VBR);
 	obs_property_list_add_int(list, "CQP", ENC_RC_MODE_CONSTANT_QP);
+	obs_property_list_add_int(list, "CBR", ENC_RC_MODE_CBR);
 	obs_property_list_add_int(list, "CRF", ENC_CRF_ENABLE_ALIAS);
 
 	obs_property_set_modified_callback(list, rate_control_modified);
@@ -180,6 +179,10 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
 				   ENC_SUPPORTED_MAX_QP, 1);
 
+	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
+				   ENC_MIN_NUM_B_FRAMES, ENC_MAX_NUM_B_FRAMES,
+				   1);
+
 	list = obs_properties_add_list(props, "profile", TEXT_PROFILE,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
@@ -192,14 +195,6 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(list, "1", ENC_LEVEL_10);
-	obs_property_list_add_int(list, "1.1", ENC_LEVEL_11);
-	obs_property_list_add_int(list, "1.2", ENC_LEVEL_12);
-	obs_property_list_add_int(list, "1.3", ENC_LEVEL_13);
-	obs_property_list_add_int(list, "2", ENC_LEVEL_20);
-	obs_property_list_add_int(list, "2.1", ENC_LEVEL_21);
-	obs_property_list_add_int(list, "2.2", ENC_LEVEL_22);
-	obs_property_list_add_int(list, "3", ENC_LEVEL_30);
 	obs_property_list_add_int(list, "3.1", ENC_LEVEL_31);
 	obs_property_list_add_int(list, "3.2", ENC_LEVEL_32);
 	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
@@ -229,13 +224,11 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	obs_property_t *list;
 	obs_property_t *headers;
 
-	list = obs_properties_add_list(props, "rate_control", TEXT_RATE_CONTROL,
+	list = obs_properties_add_list(props, "control_rate", TEXT_RATE_CONTROL,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(list, "CBR", ENC_RC_MODE_CBR);
-	obs_property_list_add_int(list, "CVBR", ENC_RC_MODE_CVBR);
-	obs_property_list_add_int(list, "VBR", ENC_RC_MODE_VBR);
 	obs_property_list_add_int(list, "CQP", ENC_RC_MODE_CONSTANT_QP);
+	obs_property_list_add_int(list, "CBR", ENC_RC_MODE_CBR);
 	obs_property_list_add_int(list, "CRF", ENC_CRF_ENABLE_ALIAS);
 
 	obs_property_set_modified_callback(list, rate_control_modified);
@@ -249,6 +242,10 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 				   ENC_SUPPORTED_MIN_BITRATE,
 				   ENC_SUPPORTED_MAX_BITRATE, 50);
 	obs_property_int_set_suffix(p, " Kbps");
+
+	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
+				   ENC_MIN_NUM_B_FRAMES, ENC_MAX_NUM_B_FRAMES,
+				   1);
 
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
 				   ENC_SUPPORTED_MAX_QP, 1);
@@ -264,11 +261,6 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(list, "1", ENC_LEVEL_10);
-	obs_property_list_add_int(list, "1.1", ENC_LEVEL_11);
-	obs_property_list_add_int(list, "2", ENC_LEVEL_20);
-	obs_property_list_add_int(list, "2.1", ENC_LEVEL_21);
-	obs_property_list_add_int(list, "3", ENC_LEVEL_30);
 	obs_property_list_add_int(list, "3.1", ENC_LEVEL_31);
 	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
 	obs_property_list_add_int(list, "4.1", ENC_LEVEL_41);
@@ -295,13 +287,11 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 	obs_property_t *list;
 	obs_property_t *headers;
 
-	list = obs_properties_add_list(props, "rate_control", TEXT_RATE_CONTROL,
+	list = obs_properties_add_list(props, "control_rate", TEXT_RATE_CONTROL,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(list, "CBR", ENC_RC_MODE_CBR);
-	obs_property_list_add_int(list, "CVBR", ENC_RC_MODE_CVBR);
-	obs_property_list_add_int(list, "VBR", ENC_RC_MODE_VBR);
 	obs_property_list_add_int(list, "CQP", ENC_RC_MODE_CONSTANT_QP);
+	obs_property_list_add_int(list, "CBR", ENC_RC_MODE_CBR);
 	obs_property_list_add_int(list, "CRF", ENC_CRF_ENABLE_ALIAS);
 
 	obs_property_set_modified_callback(list, rate_control_modified);
@@ -315,6 +305,10 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 				   ENC_SUPPORTED_MIN_BITRATE,
 				   ENC_SUPPORTED_MAX_BITRATE, 50);
 	obs_property_int_set_suffix(p, " Kbps");
+
+	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
+				   ENC_MIN_NUM_B_FRAMES,
+				   ENC_MAX_NUM_B_FRAMES_AV1, 1);
 
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
 				   ENC_SUPPORTED_MAX_QP, 1);
@@ -336,10 +330,12 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "bitrate", ENC_DEFAULT_BITRATE);
 	obs_data_set_default_int(settings, "max_bitrate",
 				 ENC_DEFAULT_MAX_BITRATE);
+	obs_data_set_default_int(settings, "b_frames",
+				 ENC_DEFAULT_NUM_B_FRAMES);
+	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_DEFAULT);
 	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP_MODE);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
 	obs_data_set_default_int(settings, "level", ENC_DEFAULT_LEVEL);
-	obs_data_set_default_int(settings, "rate_control", ENC_RC_MODE_CBR);
 }
 
 bool ama_get_extra_data(void *data, uint8_t **extra_data, size_t *size)

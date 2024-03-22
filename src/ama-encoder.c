@@ -149,18 +149,48 @@ int32_t enc_get_xma_props(XmaHandle handle, EncoderProperties *enc_props,
 void initialize_encoder_context(EncoderCtx *enc_ctx)
 {
 	EncoderProperties *enc_props = &enc_ctx->enc_props;
-	/* Initialize the encoder parameters to default */
+	video_t *video = obs_encoder_video(enc_ctx->enc_handle);
+	const struct video_output_info *voi = video_output_get_info(video);
+	obs_data_t *custom_settings = enc_ctx->settings;
+	/* Initialize the encoder parameters */
 	enc_props->device_id = DEFAULT_DEVICE_ID;
 	enc_props->codec_id = enc_ctx->codec;
 	enc_props->device_type = ENC_DEFAULT_DEVICE_TYPE;
-	enc_props->width = ENC_DEFAULT_WIDTH;
-	enc_props->height = ENC_DEFAULT_HEIGHT;
-	enc_props->bitrate = 5000;
-	enc_props->max_bitrate = ENC_DEFAULT_MAX_BITRATE;
-	enc_props->crf = ENC_CRF_DISABLE;
+	enc_props->width = voi->width;
+	enc_props->height = voi->height;
+	enc_props->bitrate =
+		(int)obs_data_get_int(custom_settings, "bitrate") != 0 &&
+				(int)obs_data_get_int(custom_settings,
+						      "control_rate") !=
+					ENC_RC_MODE_CONSTANT_QP &&
+				(int)obs_data_get_int(custom_settings,
+						      "control_rate") !=
+					ENC_CRF_ENABLE_ALIAS
+			? (int)obs_data_get_int(custom_settings, "bitrate")
+			: 0;
+	enc_props->max_bitrate =
+		(int)obs_data_get_int(custom_settings, "max_bitrate") != 0 &&
+				((int)obs_data_get_int(custom_settings,
+						       "control_rate") ==
+					 ENC_RC_MODE_VBR ||
+				 (int)obs_data_get_int(custom_settings,
+						       "control_rate") ==
+					 ENC_RC_MODE_CVBR)
+			? (int)obs_data_get_int(custom_settings, "max_bitrate")
+			: ENC_DEFAULT_MAX_BITRATE;
+	enc_props->crf =
+		(int)obs_data_get_int(custom_settings, "control_rate") ==
+				ENC_CRF_ENABLE_ALIAS
+			? ENC_CRF_ENABLE
+			: ENC_CRF_DISABLE;
 	enc_props->force_idr = ENC_IDR_DISABLE;
-	enc_props->fps = ENC_DEFAULT_FRAMERATE;
-	enc_props->gop_size = ENC_DEFAULT_GOP_SIZE;
+	enc_props->fps = voi->fps_num / voi->fps_den;
+	enc_props->gop_size =
+		(int)obs_data_get_int(custom_settings, "keyint_sec") > 0
+			? enc_props->fps *
+				  (int)obs_data_get_int(custom_settings,
+							"keyint_sec")
+			: ENC_DEFAULT_GOP_SIZE;
 	enc_props->min_qp = ENC_DEFAULT_MIN_QP;
 	enc_props->max_qp = ENC_DEFAULT_MAX_QP;
 	enc_props->num_bframes = ENC_DEFAULT_NUM_B_FRAMES;
@@ -169,24 +199,26 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->spatial_aq = ENC_DEFAULT_SPATIAL_AQ;
 	enc_props->temporal_aq = ENC_DEFAULT_TEMPORAL_AQ;
 	enc_props->slice = DEFAULT_SLICE_ID;
-	enc_props->qp = ENC_DEFAULT_QP;
+	enc_props->qp =
+		(int)obs_data_get_int(custom_settings, "qp") != 0 &&
+				((int)obs_data_get_int(custom_settings,
+						       "control_rate") ==
+					 ENC_CRF_ENABLE_ALIAS ||
+				 (int)obs_data_get_int(custom_settings,
+						       "control_rate") ==
+					 ENC_RC_MODE_CONSTANT_QP)
+			? (int)obs_data_get_int(custom_settings, "qp")
+			: ENC_DEFAULT_QP;
+	enc_props->rc_mode =
+		(int)obs_data_get_int(custom_settings, "control_rate") !=
+				ENC_CRF_ENABLE_ALIAS
+			? (int)obs_data_get_int(custom_settings, "control_rate")
+			: ENC_RC_MODE_DEFAULT;
 	enc_props->qp_mode = ENC_DEFAULT_QP_MODE;
-	enc_props->rc_mode = ENC_RC_MODE_DEFAULT;
 	enc_props->preset = XMA_ENC_PRESET_DEFAULT;
 	enc_props->cores = XMA_ENC_CORES_DEFAULT;
-
-	switch (enc_ctx->codec) {
-	case ENCODER_ID_H264:
-		enc_props->profile = ENC_H264_MAIN;
-		break;
-	case ENCODER_ID_HEVC:
-		enc_props->profile = ENC_HEVC_MAIN;
-		break;
-	case ENCODER_ID_AV1:
-		enc_props->profile = ENC_AV1_MAIN;
-		break;
-	}
-	enc_props->level = ENC_DEFAULT_LEVEL;
+	enc_props->profile = (int)obs_data_get_int(custom_settings, "profile");
+	enc_props->level = (int)obs_data_get_int(custom_settings, "level");
 	enc_props->tier = -1;
 	enc_props->lookahead_depth = ENC_MIN_LOOKAHEAD_DEPTH;
 	enc_props->tune_metrics = 1;
