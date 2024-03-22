@@ -191,12 +191,10 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->spatial_aq = ENC_DEFAULT_SPATIAL_AQ;
 	enc_props->temporal_aq = ENC_DEFAULT_TEMPORAL_AQ;
 	enc_props->slice = DEFAULT_SLICE_ID;
-	enc_props->qp =
-		(int)obs_data_get_int(custom_settings, "qp") != 0 &&
-				(control_rate == ENC_CRF_ENABLE_ALIAS ||
-				 control_rate == ENC_RC_MODE_CONSTANT_QP)
-			? (int)obs_data_get_int(custom_settings, "qp")
-			: ENC_DEFAULT_QP;
+	enc_props->qp = (control_rate == ENC_CRF_ENABLE_ALIAS ||
+			 control_rate == ENC_RC_MODE_CONSTANT_QP)
+				? (int)obs_data_get_int(custom_settings, "qp")
+				: ENC_DEFAULT_QP;
 	enc_props->rc_mode = control_rate != ENC_CRF_ENABLE_ALIAS
 				     ? control_rate
 				     : ENC_RC_MODE_DEFAULT;
