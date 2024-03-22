@@ -152,6 +152,8 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	video_t *video = obs_encoder_video(enc_ctx->enc_handle);
 	const struct video_output_info *voi = video_output_get_info(video);
 	obs_data_t *custom_settings = enc_ctx->settings;
+	int control_rate =
+		(int)obs_data_get_int(custom_settings, "control_rate");
 	/* Initialize the encoder parameters */
 	enc_props->device_id = DEFAULT_DEVICE_ID;
 	enc_props->codec_id = enc_ctx->codec;
@@ -160,26 +162,17 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->height = voi->height;
 	enc_props->bitrate =
 		(int)obs_data_get_int(custom_settings, "bitrate") != 0 &&
-				(int)obs_data_get_int(custom_settings,
-						      "control_rate") !=
-					ENC_RC_MODE_CONSTANT_QP &&
-				(int)obs_data_get_int(custom_settings,
-						      "control_rate") !=
-					ENC_CRF_ENABLE_ALIAS
+				control_rate != ENC_RC_MODE_CONSTANT_QP &&
+				control_rate != ENC_CRF_ENABLE_ALIAS
 			? (int)obs_data_get_int(custom_settings, "bitrate")
 			: 0;
 	enc_props->max_bitrate =
 		(int)obs_data_get_int(custom_settings, "max_bitrate") != 0 &&
-				(int)obs_data_get_int(custom_settings,
-						      "control_rate") ==
-					ENC_RC_MODE_CABR
+				control_rate == ENC_RC_MODE_CABR
 			? (int)obs_data_get_int(custom_settings, "max_bitrate")
 			: ENC_DEFAULT_MAX_BITRATE;
-	enc_props->crf =
-		(int)obs_data_get_int(custom_settings, "control_rate") ==
-				ENC_CRF_ENABLE_ALIAS
-			? ENC_CRF_ENABLE
-			: ENC_CRF_DISABLE;
+	enc_props->crf = control_rate == ENC_CRF_ENABLE_ALIAS ? ENC_CRF_ENABLE
+							      : ENC_CRF_DISABLE;
 	enc_props->force_idr = ENC_IDR_DISABLE;
 	enc_props->fps = voi->fps_num / voi->fps_den;
 	enc_props->gop_size =
@@ -189,7 +182,9 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 							"keyint_sec")
 			: ENC_DEFAULT_GOP_SIZE;
 	enc_props->min_qp = ENC_DEFAULT_MIN_QP;
-	enc_props->max_qp = ENC_DEFAULT_MAX_QP;
+	enc_props->max_qp = enc_ctx->codec == ENCODER_ID_AV1
+				    ? ENC_SUPPORTED_MAX_AV1_QP
+				    : ENC_DEFAULT_MAX_QP;
 	enc_props->num_bframes = ENC_DEFAULT_NUM_B_FRAMES;
 	enc_props->spat_aq_gain = ENC_AQ_GAIN_NOT_USED;
 	enc_props->temp_aq_gain = ENC_AQ_GAIN_NOT_USED;
@@ -198,19 +193,13 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->slice = DEFAULT_SLICE_ID;
 	enc_props->qp =
 		(int)obs_data_get_int(custom_settings, "qp") != 0 &&
-				((int)obs_data_get_int(custom_settings,
-						       "control_rate") ==
-					 ENC_CRF_ENABLE_ALIAS ||
-				 (int)obs_data_get_int(custom_settings,
-						       "control_rate") ==
-					 ENC_RC_MODE_CONSTANT_QP)
+				(control_rate == ENC_CRF_ENABLE_ALIAS ||
+				 control_rate == ENC_RC_MODE_CONSTANT_QP)
 			? (int)obs_data_get_int(custom_settings, "qp")
 			: ENC_DEFAULT_QP;
-	enc_props->rc_mode =
-		(int)obs_data_get_int(custom_settings, "control_rate") !=
-				ENC_CRF_ENABLE_ALIAS
-			? (int)obs_data_get_int(custom_settings, "control_rate")
-			: ENC_RC_MODE_DEFAULT;
+	enc_props->rc_mode = control_rate != ENC_CRF_ENABLE_ALIAS
+				     ? control_rate
+				     : ENC_RC_MODE_DEFAULT;
 	enc_props->qp_mode = ENC_DEFAULT_QP_MODE;
 	enc_props->preset = XMA_ENC_PRESET_DEFAULT;
 	enc_props->cores = XMA_ENC_CORES_DEFAULT;

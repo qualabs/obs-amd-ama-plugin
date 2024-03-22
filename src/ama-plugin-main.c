@@ -308,7 +308,7 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 				   ENC_MAX_NUM_B_FRAMES_AV1, 1);
 
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
-				   ENC_SUPPORTED_MAX_QP, 1);
+				   ENC_SUPPORTED_MAX_AV1_QP, 1);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
@@ -330,7 +330,7 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "b_frames",
 				 ENC_DEFAULT_NUM_B_FRAMES);
 	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_DEFAULT);
-	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP_MODE);
+	obs_data_set_default_int(settings, "qp", 1);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
 	obs_data_set_default_int(settings, "level", ENC_DEFAULT_LEVEL);
 }
