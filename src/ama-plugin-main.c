@@ -259,7 +259,6 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(list, "3.1", ENC_LEVEL_31);
 	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
 	obs_property_list_add_int(list, "4.1", ENC_LEVEL_41);
 	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
