@@ -170,12 +170,9 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 			: 0;
 	enc_props->max_bitrate =
 		(int)obs_data_get_int(custom_settings, "max_bitrate") != 0 &&
-				((int)obs_data_get_int(custom_settings,
-						       "control_rate") ==
-					 ENC_RC_MODE_VBR ||
-				 (int)obs_data_get_int(custom_settings,
-						       "control_rate") ==
-					 ENC_RC_MODE_CVBR)
+				(int)obs_data_get_int(custom_settings,
+						      "control_rate") ==
+					ENC_RC_MODE_CABR
 			? (int)obs_data_get_int(custom_settings, "max_bitrate")
 			: ENC_DEFAULT_MAX_BITRATE;
 	enc_props->crf =

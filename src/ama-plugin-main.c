@@ -131,17 +131,15 @@ static bool rate_control_modified(obs_properties_t *ppts, obs_property_t *p,
 				  obs_data_t *settings)
 {
 	int rc = (int)obs_data_get_int(settings, "control_rate");
-	bool cvbr_or_vbr = rc == ENC_RC_MODE_VBR || rc == ENC_RC_MODE_CVBR;
-	bool cvbr_or_vbr_or_cbr = rc == ENC_RC_MODE_VBR ||
-				  rc == ENC_RC_MODE_CVBR ||
-				  rc == ENC_RC_MODE_CBR;
+	bool cabr = rc == ENC_RC_MODE_CABR;
+	bool cabr_or_cbr = rc == ENC_RC_MODE_CABR || rc == ENC_RC_MODE_CBR;
 	bool cqp_or_crf = rc == ENC_RC_MODE_CONSTANT_QP ||
 			  rc == ENC_CRF_ENABLE_ALIAS;
 
 	p = obs_properties_get(ppts, "bitrate");
-	obs_property_set_visible(p, cvbr_or_vbr_or_cbr);
+	obs_property_set_visible(p, cabr_or_cbr);
 	p = obs_properties_get(ppts, "max_bitrate");
-	obs_property_set_visible(p, cvbr_or_vbr);
+	obs_property_set_visible(p, cabr);
 	p = obs_properties_get(ppts, "qp");
 	obs_property_set_visible(p, cqp_or_crf);
 
