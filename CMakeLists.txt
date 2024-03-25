@@ -13,6 +13,7 @@ include(helpers)
 include_directories(/usr/include/obs/ /opt/amd/ama/ma35/include/xma /opt/amd/ama/ma35/include/xrm
                     /opt/amd/ama/ma35/include/xrm_interface)
 link_directories(/opt/amd/ama/ma35/lib)
+set(CMAKE_INSTALL_RPATH "/opt/amd/ama/ma35/lib")
 
 add_library(${CMAKE_PROJECT_NAME} MODULE)
 target_link_libraries(
