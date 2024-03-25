@@ -29,6 +29,14 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 
+#define do_log_enc(level, encoder, format, ...)    \
+	blog(level, "[ama encoder: '%s'] " format, \
+	     obs_encoder_get_name(encoder), ##__VA_ARGS__)
+#define do_log(level, format, ...) \
+	do_log_enc(level, obs_ama->encoder, format, ##__VA_ARGS__)
+#define warn_enc(encoder, format, ...) \
+	do_log_enc(LOG_WARNING, encoder, format, ##__VA_ARGS__)
+
 #define TEXT_RATE_CONTROL obs_module_text("Rate Control")
 #define TEXT_KEYINT_SEC obs_module_text("Key Frame Interval (0 = auto)")
 #define TEXT_BITRATE obs_module_text("Bitrate")
@@ -72,6 +80,16 @@ const char *ama_get_name_av1(void *type_data)
 void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_h264\n");
+	video_t *video = obs_encoder_video(encoder);
+	const struct video_output_info *voi = video_output_get_info(video);
+	if (voi->format != VIDEO_FORMAT_I420) {
+		obs_encoder_set_last_error(
+			encoder,
+			obs_module_text(
+				"AMD AMA encoder does not support other pixel format than I420"));
+		return NULL;
+	}
+
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
 	enc_ctx->codec = ENCODER_ID_H264;
 	encoder_create(settings, encoder, enc_ctx);
@@ -81,10 +99,16 @@ void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 
 void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 {
-	(void)settings;
-	(void)encoder;
-	obs_log(LOG_INFO,
-		"ama_create_hevc, create function still to be implemented\n");
+	obs_log(LOG_INFO, "ama_create_hevc \n");
+	video_t *video = obs_encoder_video(encoder);
+	const struct video_output_info *voi = video_output_get_info(video);
+	if (voi->format != VIDEO_FORMAT_I420) {
+		obs_encoder_set_last_error(
+			encoder,
+			obs_module_text(
+				"AMD AMA encoder does not support other pixel format than I420"));
+		return NULL;
+	}
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
 	enc_ctx->codec = ENCODER_ID_HEVC;
 	encoder_create(settings, encoder, enc_ctx);
@@ -96,8 +120,16 @@ void *ama_create_av1(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	(void)settings;
 	(void)encoder;
-	obs_log(LOG_INFO,
-		"ama_create_av1, create function still to be implemented\n");
+	obs_log(LOG_INFO, "ama_create_av1 \n");
+	video_t *video = obs_encoder_video(encoder);
+	const struct video_output_info *voi = video_output_get_info(video);
+	if (voi->format != VIDEO_FORMAT_I420) {
+		obs_encoder_set_last_error(
+			encoder,
+			obs_module_text(
+				"AMD AMA encoder does not support other pixel format than I420"));
+		return NULL;
+	}
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
 	enc_ctx->codec = ENCODER_ID_AV1;
 	encoder_create(settings, encoder, enc_ctx);
@@ -174,7 +206,7 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 				   ENC_SUPPORTED_MAX_BITRATE, 50);
 	obs_property_int_set_suffix(p, " Kbps");
 
-	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
+	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_DEFAULT_ALIAS_QP,
 				   ENC_SUPPORTED_MAX_QP, 1);
 
 	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
@@ -245,7 +277,7 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 				   ENC_MIN_NUM_B_FRAMES, ENC_MAX_NUM_B_FRAMES,
 				   1);
 
-	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
+	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_DEFAULT_ALIAS_QP,
 				   ENC_SUPPORTED_MAX_QP, 1);
 
 	list = obs_properties_add_list(props, "profile", TEXT_PROFILE,
@@ -307,7 +339,7 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 				   ENC_MIN_NUM_B_FRAMES,
 				   ENC_MAX_NUM_B_FRAMES_AV1, 1);
 
-	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
+	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_DEFAULT_ALIAS_QP,
 				   ENC_SUPPORTED_MAX_AV1_QP, 1);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
@@ -330,7 +362,7 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "b_frames",
 				 ENC_DEFAULT_NUM_B_FRAMES);
 	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_DEFAULT);
-	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP);
+	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_ALIAS_QP);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
 	obs_data_set_default_int(settings, "level", ENC_DEFAULT_LEVEL);
 }
