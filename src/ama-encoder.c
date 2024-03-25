@@ -194,7 +194,7 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->qp = (control_rate == ENC_CRF_ENABLE_ALIAS ||
 			 control_rate == ENC_RC_MODE_CONSTANT_QP)
 				? (int)obs_data_get_int(custom_settings, "qp")
-				: ENC_DEFAULT_ALIAS_QP;
+				: ENC_DEFAULT_QP;
 	enc_props->rc_mode = control_rate != ENC_CRF_ENABLE_ALIAS
 				     ? control_rate
 				     : ENC_RC_MODE_DEFAULT;
