@@ -173,7 +173,9 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 			: ENC_DEFAULT_MAX_BITRATE;
 	enc_props->crf = control_rate == ENC_CRF_ENABLE_ALIAS ? ENC_CRF_ENABLE
 							      : ENC_CRF_DISABLE;
-	enc_props->force_idr = ENC_IDR_DISABLE;
+	enc_props->force_idr = enc_ctx->codec == ENCODER_ID_AV1
+				       ? ENC_IDR_ENABLE
+				       : ENC_IDR_DISABLE;
 	enc_props->fps = voi->fps_num / voi->fps_den;
 	enc_props->gop_size =
 		(int)obs_data_get_int(custom_settings, "keyint_sec") > 0
