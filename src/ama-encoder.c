@@ -173,16 +173,14 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 			: ENC_DEFAULT_MAX_BITRATE;
 	enc_props->crf = control_rate == ENC_CRF_ENABLE_ALIAS ? ENC_CRF_ENABLE
 							      : ENC_CRF_DISABLE;
-	enc_props->force_idr = enc_ctx->codec == ENCODER_ID_AV1
-				       ? ENC_IDR_ENABLE
-				       : ENC_IDR_DISABLE;
+	enc_props->force_idr = enc_ctx->codec == ENC_IDR_ENABLE;
 	enc_props->fps = voi->fps_num / voi->fps_den;
 	enc_props->gop_size =
 		(int)obs_data_get_int(custom_settings, "keyint_sec") > 0
 			? enc_props->fps *
 				  (int)obs_data_get_int(custom_settings,
 							"keyint_sec")
-			: ENC_DEFAULT_GOP_SIZE;
+			: enc_props->fps * 2;
 	enc_props->min_qp = ENC_DEFAULT_MIN_QP;
 	enc_props->max_qp = enc_ctx->codec == ENCODER_ID_AV1
 				    ? ENC_SUPPORTED_MAX_AV1_QP
@@ -204,7 +202,7 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->preset = XMA_ENC_PRESET_DEFAULT;
 	enc_props->cores = XMA_ENC_CORES_DEFAULT;
 	enc_props->profile = (int)obs_data_get_int(custom_settings, "profile");
-	enc_props->level = (int)obs_data_get_int(custom_settings, "level");
+	enc_props->level = ENC_DEFAULT_LEVEL;
 	enc_props->tier = -1;
 	enc_props->lookahead_depth = ENC_MIN_LOOKAHEAD_DEPTH;
 	enc_props->tune_metrics = 1;

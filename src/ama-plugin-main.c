@@ -80,16 +80,7 @@ const char *ama_get_name_av1(void *type_data)
 void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_h264\n");
-	video_t *video = obs_encoder_video(encoder);
-	const struct video_output_info *voi = video_output_get_info(video);
-	if (voi->format != VIDEO_FORMAT_I420) {
-		obs_encoder_set_last_error(
-			encoder,
-			obs_module_text(
-				"AMD AMA encoder does not support other pixel format than I420"));
-		return NULL;
-	}
-
+	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
 	enc_ctx->codec = ENCODER_ID_H264;
 	encoder_create(settings, encoder, enc_ctx);
@@ -100,15 +91,7 @@ void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_hevc \n");
-	video_t *video = obs_encoder_video(encoder);
-	const struct video_output_info *voi = video_output_get_info(video);
-	if (voi->format != VIDEO_FORMAT_I420) {
-		obs_encoder_set_last_error(
-			encoder,
-			obs_module_text(
-				"AMD AMA encoder does not support other pixel format than I420"));
-		return NULL;
-	}
+	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
 	enc_ctx->codec = ENCODER_ID_HEVC;
 	encoder_create(settings, encoder, enc_ctx);
@@ -118,18 +101,8 @@ void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 
 void *ama_create_av1(obs_data_t *settings, obs_encoder_t *encoder)
 {
-	(void)settings;
-	(void)encoder;
 	obs_log(LOG_INFO, "ama_create_av1 \n");
-	video_t *video = obs_encoder_video(encoder);
-	const struct video_output_info *voi = video_output_get_info(video);
-	if (voi->format != VIDEO_FORMAT_I420) {
-		obs_encoder_set_last_error(
-			encoder,
-			obs_module_text(
-				"AMD AMA encoder does not support other pixel format than I420"));
-		return NULL;
-	}
+	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
 	enc_ctx->codec = ENCODER_ID_AV1;
 	encoder_create(settings, encoder, enc_ctx);
@@ -222,18 +195,6 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	obs_property_list_add_int(list, "high10", ENC_H264_HIGH_10);
 	obs_property_list_add_int(list, "high10 intra", ENC_H264_HIGH_10_INTRA);
 
-	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
-				       OBS_COMBO_TYPE_LIST,
-				       OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(list, "3.1", ENC_LEVEL_31);
-	obs_property_list_add_int(list, "3.2", ENC_LEVEL_32);
-	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
-	obs_property_list_add_int(list, "4.1", ENC_LEVEL_41);
-	obs_property_list_add_int(list, "4.2", ENC_LEVEL_42);
-	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
-	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
-	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
-
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
 	obs_property_int_set_suffix(p, " s");
@@ -287,14 +248,6 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	obs_property_list_add_int(list, "main intra", ENC_HEVC_MAIN_INTRA);
 	obs_property_list_add_int(list, "main10", ENC_HEVC_MAIN_10);
 	obs_property_list_add_int(list, "main10 intra", ENC_HEVC_MAIN10_INTRA);
-
-	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
-				       OBS_COMBO_TYPE_LIST,
-				       OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
-	obs_property_list_add_int(list, "4.1", ENC_LEVEL_41);
-	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
-	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
@@ -361,10 +314,9 @@ static void obs_ama_defaults(obs_data_t *settings)
 				 ENC_DEFAULT_MAX_BITRATE);
 	obs_data_set_default_int(settings, "b_frames",
 				 ENC_DEFAULT_NUM_B_FRAMES);
-	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_DEFAULT);
+	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_CBR);
 	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_ALIAS_QP);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
-	obs_data_set_default_int(settings, "level", ENC_DEFAULT_LEVEL);
 }
 
 bool ama_get_extra_data(void *data, uint8_t **extra_data, size_t *size)
@@ -380,6 +332,9 @@ bool ama_get_sei_data(void *data, uint8_t **sei_data, size_t *size)
 {
 	obs_log(LOG_INFO, "ama_get_sei_data \n");
 	EncoderCtx *enc_ctx = (EncoderCtx *)data;
+	if (enc_ctx->codec == ENCODER_ID_AV1){
+		return false;
+	}
 	*size = enc_ctx->sei_size;
 	*sei_data = enc_ctx->sei_data;
 	return true;
