@@ -182,10 +182,6 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
 				   ENC_SUPPORTED_MAX_QP, 1);
 
-	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
-				   ENC_MIN_NUM_B_FRAMES, ENC_MAX_NUM_B_FRAMES,
-				   1);
-
 	list = obs_properties_add_list(props, "profile", TEXT_PROFILE,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
@@ -233,10 +229,6 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 				   ENC_SUPPORTED_MIN_BITRATE,
 				   ENC_SUPPORTED_MAX_BITRATE, 50);
 	obs_property_int_set_suffix(p, " Kbps");
-
-	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
-				   ENC_MIN_NUM_B_FRAMES, ENC_MAX_NUM_B_FRAMES,
-				   1);
 
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
 				   ENC_SUPPORTED_MAX_QP, 1);
@@ -288,10 +280,6 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 				   ENC_SUPPORTED_MAX_BITRATE, 50);
 	obs_property_int_set_suffix(p, " Kbps");
 
-	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
-				   ENC_MIN_NUM_B_FRAMES,
-				   ENC_MAX_NUM_B_FRAMES_AV1, 1);
-
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
 				   ENC_SUPPORTED_MAX_AV1_QP, 1);
 
@@ -312,8 +300,6 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "bitrate", ENC_DEFAULT_BITRATE);
 	obs_data_set_default_int(settings, "max_bitrate",
 				 ENC_DEFAULT_MAX_BITRATE);
-	obs_data_set_default_int(settings, "b_frames",
-				 ENC_DEFAULT_NUM_B_FRAMES);
 	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_CBR);
 	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
