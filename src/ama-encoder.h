@@ -162,7 +162,6 @@ typedef enum EncoderDeviceType {
 #define ENC_DEFAULT_SPATIAL_AQ 1
 #define ENC_DEFAULT_TEMPORAL_AQ 1
 #define ENC_DEFAULT_QP 30
-#define ENC_DEFAULT_ALIAS_QP 0
 #define ENC_DEFAULT_QP_MODE 0
 #define ENC_RC_MODE_DEFAULT -1
 #define ENC_DEFAULT_LEVEL 0
