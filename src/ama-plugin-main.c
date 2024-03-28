@@ -318,12 +318,9 @@ bool ama_get_sei_data(void *data, uint8_t **sei_data, size_t *size)
 {
 	obs_log(LOG_INFO, "ama_get_sei_data \n");
 	EncoderCtx *enc_ctx = (EncoderCtx *)data;
-	if (enc_ctx->codec == ENCODER_ID_AV1) {
-		return false;
-	}
 	*size = enc_ctx->sei_size;
 	*sei_data = enc_ctx->sei_data;
-	return true;
+	return enc_ctx->codec != ENCODER_ID_AV1;
 }
 
 void ama_get_video_info(void *data, struct video_scale_info *info)
