@@ -170,3 +170,17 @@ To use code signing on GitHub Actions, the certificate and associated informatio
 * To also enable notarization on GitHub Action runners, the following repository secrets are required:
     * `MACOS_NOTARIZATION_USERNAME`: Your Apple Developer account's _Apple ID_
     * `MACOS_NOTARIZATION_PASSWORD`: Your Apple Developer account's _generated app password_
+
+### Known Limitations
+
+This plugin has the following limitations when streaming or recording:
+
+* It is not possible for the user to select an encoding level, the encoding level selection is done by the plugin taking into account the characteristics of the stream or recording to be created.
+
+* It is not possible for the user to select the amount of B frames for the encoding, the amount of B frames is selected by the plugin taking into account the characteristics of the stream or recording to be created.
+
+* The only possible input pixel format for this plugin is I42O. If another pixel format is selected by the user, the plugin will convert it to I420 format. 
+
+* It is not possible to change encoder settings while doing streaming. If the user needs to change encoding settings, it must stop the streaming, change the encoding settings and start again the stream.
+
+
