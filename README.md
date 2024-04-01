@@ -21,13 +21,13 @@ In order to use the plugin it is necessary to have the following requirements on
 
 ## Installation
 
-The plugin can be installed using dpkg command once you have the plugin package. To obtain the package, download the package zip from the repo and unzip it or build the package following the instructions of section [Build Plugin](#build-plugin). To install the package run the following command:
+The plugin can be installed using dpkg command once you have the plugin package. To obtain the package, download the package zip from the repo and unzip it or build the package following the instructions of section Build Plugin. To install the package run the following command:
 
 `dpkg -i obs-amd-ama-plugin.deb`
 
 After running command, AMD AMA Plugin features should be available when launching OBS.
 
-## Build Plugin {#build-plugin}
+## Build Plugin
 
 To build the plugin run the following commands:
 
