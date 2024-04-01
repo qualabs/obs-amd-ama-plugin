@@ -13,7 +13,7 @@ The plugin provides an AVC, HEVC and AV1 encoder done by the hardware accelerato
 
 In order to use the plugin it is necessary to have the following requirements on your PC:
 
-* Linux Ubuntu 22.04 OS
+* Linux Ubuntu 22.04 OS with Kernel version 5.15.0-92 generic
 * At least one AMD MA35D hardware acceleration card
 * AMD AMA 1.1.1 SDK installed, for intructions on installing the SDK follow the instructions from the following [link](https://amd.github.io/ama-sdk/v1.1.1/getting_started_on_prem.html)
 * OBS Studio version 30.0 or greater installed
