@@ -34,7 +34,7 @@ To build the plugin run the following commands:
 * `cd /.github/scripts`
 * `./build-linux`
 
-After running these two commands you will have a build folder named `build_x86_64`, particularly this folder will contain the shared object associated with the plugin `obs-amd-ama.so`. If you want to create a `.deb` package of the plugin you can run the following command in `.github` directory:
+After running these two commands you will have a build folder named `build_x86_64`, particularly this folder will contain the shared object associated with the plugin `obs-amd-ama.so`. If you want to create a `.deb` package of the plugin you can run the following command in the plugin main directory:
 
 `cmake --build build_x86_64 --target package`
 
