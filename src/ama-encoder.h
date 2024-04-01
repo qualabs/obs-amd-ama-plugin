@@ -256,6 +256,7 @@ typedef struct {
 	XmaFrameSideData *dyn_params;
 	int64_array_t dts_array;
 	int32_t codec;
+	DARRAY(uint8_t) packet_data;
 } EncoderCtx;
 
 int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
