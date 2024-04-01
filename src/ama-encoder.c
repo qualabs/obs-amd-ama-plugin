@@ -608,7 +608,9 @@ int32_t encoder_destroy(EncoderCtx *enc_ctx)
 	da_free(enc_ctx->packet_data);
 
 	bfree(enc_ctx->header_data);
-	bfree(enc_ctx->sei_data);
+	if (enc_ctx->codec != ENCODER_ID_AV1) {
+		bfree(enc_ctx->sei_data);
+	}
 	bfree(enc_ctx);
 
 	return 0;
