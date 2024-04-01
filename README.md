@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The plugin provides an AVC, HEVC and AV1 encoder done by the hardware accelerator card AMD AMA MA35D. It also includes:
+The plugin provides an AVC, HEVC and AV1 encoder done by the hardware accelerator card AMD MA35D. It also includes:
 
 * A CMake project file
 * GitHub Actions workflows and repository actions
@@ -31,8 +31,8 @@ After running command, AMD AMA Plugin features should be available when launchin
 
 To build the plugin run the following commands:
 
-`cd /.github/scripts`
-`./build-linux`
+* `cd /.github/scripts`
+* `./build-linux`
 
 After running these two commands you will have a build folder named `build-x86_64`, particularly this folder will contain the shared object associated with the plugin `obs-amd-ama.so`. If you want to create a `.deb` package of the plugin you can run the following command in `.github` directory:
 
