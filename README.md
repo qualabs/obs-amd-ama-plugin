@@ -16,7 +16,7 @@ In order to use the plugin it is necessary to have the following requirements on
 * Linux Ubuntu 22.04 OS with Kernel version 5.15.0-92 generic
 * At least one AMD MA35D hardware acceleration card
 * AMD AMA 1.1.1 SDK installed, for intructions on installing the SDK follow the instructions from the following [link](https://amd.github.io/ama-sdk/v1.1.1/getting_started_on_prem.html)
-* OBS Studio version 30.0 or greater installed
+* OBS Studio version 30.0 or greater installed via PPA
 * If you want to build the plugin you will need additional requirements which are listed and explained in the following [link](https://github.com/obsproject/obs-studio/wiki/Build-Instructions-For-Linux) 
 
 ## Installation
@@ -40,7 +40,9 @@ After running these two commands you will have a build folder named `build_x86_6
 
 ## Known Limitations
 
-This plugin has the following limitations when streaming or recording:
+This plugin has the following limitations:
+
+* The plugin only works with a PPA OBS Studio installation, it is not compatible with a Flatpack installation.
 
 * It is not possible for the user to select an encoding level, the encoding level selection is done by the plugin taking into account the characteristics of the stream or recording to be created.
 
