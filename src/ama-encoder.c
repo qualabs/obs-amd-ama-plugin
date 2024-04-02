@@ -492,6 +492,7 @@ void get_headers(EncoderCtx *enc_ctx, struct encoder_packet *packet)
 					&enc_ctx->header_size);
 		break;
 	}
+	bfree(new_packet.data);
 }
 
 int32_t encoder_process_frame(struct encoder_frame *frame,
@@ -549,9 +550,11 @@ int32_t encoder_process_frame(struct encoder_frame *frame,
 
 	if (ret == XMA_SUCCESS) {
 		*received_packet = true;
-		packet->data = bmalloc(recv_size);
-		memcpy(packet->data, output_xma_buffer->data.buffer, recv_size);
-		packet->size = recv_size;
+		da_resize(enc_ctx->packet_data, 0);
+		da_push_back_array(enc_ctx->packet_data,
+				   output_xma_buffer->data.buffer, recv_size);
+		packet->data = enc_ctx->packet_data.array;
+		packet->size = enc_ctx->packet_data.num;
 		packet->pts = output_xma_buffer->pts;
 		packet->dts = get_dts(enc_ctx);
 		packet->keyframe =
@@ -602,7 +605,12 @@ int32_t encoder_destroy(EncoderCtx *enc_ctx)
 	enc_ctx->log = NULL;
 
 	da_free(enc_ctx->dts_array);
+	da_free(enc_ctx->packet_data);
 
+	bfree(enc_ctx->header_data);
+	if (enc_ctx->codec != ENCODER_ID_AV1) {
+		bfree(enc_ctx->sei_data);
+	}
 	bfree(enc_ctx);
 
 	return 0;
