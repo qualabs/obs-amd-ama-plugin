@@ -23,13 +23,13 @@ In order to use the plugin it is necessary to have the following requirements on
 
 It is necessary to do some additional configurations on your PC before launching OBS and using the plugin:
 
-For MA35D card to work properly it is necessary to run on the terminal where OBS is going to be launched from the script `setup.sh`. This script is added to your pc when installing AMD AMA SDK, to run this script just run the following command: 
+For MA35D card to work properly it is necessary to run a setup script that sets some necessary environment variables. This script is added to your pc when installing AMD AMA SDK, to run the script there are different approaches you can take: 
 
-`source /opt/amd/ama/ma35/scripts/setup.sh `
-
-Alternatively, you can configure your bash profile to run this script every time you open a new terminal. For this purpose, open your `.bashrc` file and add the following line at the end of this file:
+* The easiest method is to configure your bash profile, for this purpose open the file `/etc/profile` and add the following line at the end of this file:
 
 `source /opt/amd/ama/ma35/scripts/setup.sh`
+
+* Alternatively you can run the same command every time you open a new terminal and afterwards launch OBS from that same terminal.
 
 ## Installation
 
