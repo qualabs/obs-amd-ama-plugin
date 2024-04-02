@@ -120,7 +120,7 @@ bool ama_encode(void *enc_ctx, struct encoder_frame *frame,
 		struct encoder_packet *packet, bool *received_packet)
 {
 	bool res = encoder_process_frame(frame, packet, received_packet,
-					 enc_ctx) == XMA_SUCCESS;
+					 enc_ctx) != XMA_ERROR;
 	return res;
 }
 
