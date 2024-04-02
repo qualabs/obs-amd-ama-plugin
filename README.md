@@ -33,7 +33,7 @@ Alternatively, you can configure your bash profile to run this script every time
 
 ## Installation
 
-The plugin can be installed using dpkg command once you have the plugin package. To obtain the package, download the package zip from the repo and unzip it or build the package following the instructions of section Build Plugin. To install the package run the following command:
+The plugin can be installed using dpkg command once you have the plugin package, to install the package run the following command:
 
 `dpkg -i obs-amd-ama-plugin.deb`
 
