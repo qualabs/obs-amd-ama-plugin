@@ -17,7 +17,19 @@ In order to use the plugin it is necessary to have the following requirements on
 * At least one AMD MA35D hardware acceleration card
 * AMD AMA 1.1.1 SDK installed, for intructions on installing the SDK follow the instructions from the following [link](https://amd.github.io/ama-sdk/v1.1.1/getting_started_on_prem.html)
 * OBS Studio version 30.0 or greater installed via PPA
-* If you want to build the plugin you will need additional requirements which are listed and explained in the following [link](https://github.com/obsproject/obs-studio/wiki/Build-Instructions-For-Linux) 
+* If you want to build the plugin you will need additional requirements which are listed and explained in the following [link](https://github.com/obsproject/obs-studio/wiki/Build-Instructions-For-Linux)
+
+### Before launching OBS
+
+It is necessary to do some additional configurations on your PC before launching OBS and using the plugin:
+
+For MA35D card to work properly it is necessary to run on the terminal where OBS is going to be launched from the script `setup.sh`. This script is added to your pc when installing AMD AMA SDK, to run this script just run the following command: 
+
+`source /opt/amd/ama/ma35/scripts/setup.sh `
+
+Alternatively, you can configure your bash profile to run this script every time you open a new terminal. For this purpose, open your `.bashrc` file and add the following line at the end of this file:
+
+`source /opt/amd/ama/ma35/scripts/setup.sh`
 
 ## Installation
 
