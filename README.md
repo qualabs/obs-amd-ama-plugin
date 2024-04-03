@@ -64,4 +64,5 @@ This plugin has the following limitations:
 
 * It is not possible to change encoder settings while doing streaming. If the user needs to change encoding settings, it must stop the streaming, change the encoding settings and start again the stream.
 
+* This plugin supports streaming up to 2 streams at 1080p60 or up to 4 streams at 1080p30. Exceeding these limits may result in performance issues or streaming instability
 
