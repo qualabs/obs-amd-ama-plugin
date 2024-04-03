@@ -185,7 +185,10 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->max_qp = enc_ctx->codec == ENCODER_ID_AV1
 				    ? ENC_SUPPORTED_MAX_AV1_QP
 				    : ENC_DEFAULT_MAX_QP;
-	enc_props->num_bframes = ENC_DEFAULT_NUM_B_FRAMES;
+	enc_props->num_bframes =
+		obs_data_get_bool(custom_settings, "lookahead")
+			? (int)obs_data_get_int(custom_settings, "b_frames")
+			: ENC_MIN_NUM_B_FRAMES;
 	enc_props->spat_aq_gain = ENC_AQ_GAIN_NOT_USED;
 	enc_props->temp_aq_gain = ENC_AQ_GAIN_NOT_USED;
 	enc_props->spatial_aq = ENC_DEFAULT_SPATIAL_AQ;
@@ -204,7 +207,10 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->profile = (int)obs_data_get_int(custom_settings, "profile");
 	enc_props->level = ENC_DEFAULT_LEVEL;
 	enc_props->tier = -1;
-	enc_props->lookahead_depth = ENC_MIN_LOOKAHEAD_DEPTH;
+	enc_props->lookahead_depth =
+		obs_data_get_bool(custom_settings, "lookahead")
+			? ENC_DEFAULT_LOOKAHEAD_DEPTH
+			: 0;
 	enc_props->tune_metrics = 1;
 	enc_props->dynamic_gop = -1;
 	enc_props->pix_fmt = XMA_YUV420P_FMT_TYPE;
@@ -292,7 +298,7 @@ int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 	xrm_props.fps_den = 1;
 	xrm_props.enc_cores = enc_ctx->enc_props.cores;
 	strcpy(xrm_props.preset, "medium");
-	xrm_props.is_la_enabled = false;
+	xrm_props.is_la_enabled = enc_ctx->enc_props.lookahead_depth != 0;
 	bool isAV1 = enc_ctx->codec == ENCODER_ID_AV1;
 	enc_ctx->xrm_enc_ctx.slice_id = enc_ctx->enc_props.slice;
 

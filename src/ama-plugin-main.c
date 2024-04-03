@@ -45,6 +45,7 @@ OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 #define TEXT_B_FRAMES obs_module_text("B Frames")
 #define TEXT_PROFILE obs_module_text("Profile")
 #define TEXT_LEVEL obs_module_text("Level")
+#define TEXT_LOOK_AHEAD obs_module_text("Look Ahead")
 #define TEXT_NONE obs_module_text("None")
 
 struct encoder_type_data {
@@ -151,6 +152,15 @@ static bool rate_control_modified(obs_properties_t *ppts, obs_property_t *p,
 	return true;
 }
 
+static bool look_ahead_modified(obs_properties_t *ppts, obs_property_t *p,
+				obs_data_t *settings)
+{
+	bool la = obs_data_get_bool(settings, "lookahead");
+	p = obs_properties_get(ppts, "b_frames");
+	obs_property_set_visible(p, la);
+	return true;
+}
+
 static obs_properties_t *obs_ama_props_h264(void *unused)
 {
 	UNUSED_PARAMETER(unused);
@@ -168,6 +178,13 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	obs_property_list_add_int(list, "CRF", ENC_CRF_ENABLE_ALIAS);
 
 	obs_property_set_modified_callback(list, rate_control_modified);
+
+	p = obs_properties_add_bool(props, "lookahead", TEXT_LOOK_AHEAD);
+	obs_property_set_modified_callback(p, look_ahead_modified);
+
+	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
+				   ENC_MIN_NUM_B_FRAMES, ENC_MAX_NUM_B_FRAMES,
+				   1);
 
 	p = obs_properties_add_int(props, "bitrate", TEXT_BITRATE,
 				   ENC_SUPPORTED_MIN_BITRATE,
@@ -220,6 +237,13 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 
 	obs_property_set_modified_callback(list, rate_control_modified);
 
+	p = obs_properties_add_bool(props, "lookahead", TEXT_LOOK_AHEAD);
+	obs_property_set_modified_callback(p, look_ahead_modified);
+
+	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
+				   ENC_MIN_NUM_B_FRAMES, ENC_MAX_NUM_B_FRAMES,
+				   1);
+
 	p = obs_properties_add_int(props, "bitrate", TEXT_BITRATE,
 				   ENC_SUPPORTED_MIN_BITRATE,
 				   ENC_SUPPORTED_MAX_BITRATE, 50);
@@ -270,6 +294,13 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 
 	obs_property_set_modified_callback(list, rate_control_modified);
 
+	p = obs_properties_add_bool(props, "lookahead", TEXT_LOOK_AHEAD);
+	obs_property_set_modified_callback(p, look_ahead_modified);
+
+	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
+				   ENC_MIN_NUM_B_FRAMES,
+				   ENC_MAX_NUM_B_FRAMES_AV1, 1);
+
 	p = obs_properties_add_int(props, "bitrate", TEXT_BITRATE,
 				   ENC_SUPPORTED_MIN_BITRATE,
 				   ENC_SUPPORTED_MAX_BITRATE, 50);
@@ -297,6 +328,8 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 static void obs_ama_defaults(obs_data_t *settings)
 {
 	obs_data_set_default_int(settings, "keyint_sec", 0);
+	obs_data_set_default_bool(settings, "lookahead", false);
+	obs_data_set_default_int(settings, "b_frames", 0);
 	obs_data_set_default_int(settings, "bitrate", ENC_DEFAULT_BITRATE);
 	obs_data_set_default_int(settings, "max_bitrate",
 				 ENC_DEFAULT_MAX_BITRATE);
