@@ -294,13 +294,6 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 
 	obs_property_set_modified_callback(list, rate_control_modified);
 
-	p = obs_properties_add_bool(props, "lookahead", TEXT_LOOK_AHEAD);
-	obs_property_set_modified_callback(p, look_ahead_modified);
-
-	p = obs_properties_add_int(props, "b_frames", TEXT_B_FRAMES,
-				   ENC_MIN_NUM_B_FRAMES,
-				   ENC_MAX_NUM_B_FRAMES_AV1, 1);
-
 	p = obs_properties_add_int(props, "bitrate", TEXT_BITRATE,
 				   ENC_SUPPORTED_MIN_BITRATE,
 				   ENC_SUPPORTED_MAX_BITRATE, 50);
