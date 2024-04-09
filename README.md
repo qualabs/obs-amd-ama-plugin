@@ -1,172 +1,112 @@
-# OBS Plugin Template
+# AMD AMA Plugin
 
 ## Introduction
 
-The plugin template is meant to be used as a starting point for OBS Studio plugin development. It includes:
+The plugin provides an AVC, HEVC and AV1 encoder done by the hardware accelerator card AMD MA35D. It also includes:
 
-* Boilerplate plugin source code
 * A CMake project file
 * GitHub Actions workflows and repository actions
 
 ## Set Up
 
-The plugin project is set up using the included `buildspec.json` file. The following fields should be customized for an actual plugin:
+### Pre Requisites
 
-* `name`: The plugin name
-* `version`: The plugin version
-* `author`: Actual name or nickname of the plugin's author
-* `website`: URL of a website associated with the plugin
-* `email`: Contact email address associated with the plugin
-* `uuids`
-    * `macosPackage`: Unique (**!**) identifier for the macOS plugin package
-    * `macosInstaller`: Unique (**!**) identifier for the macOS plugin installer
-    * `windowsApp`: Unique (**!**) identifier for the Windows plugin installer
+In order to use the plugin it is necessary to have the following requirements on your PC:
 
-These values are read and processed automatically by the CMake build scripts, so no further adjustments in other files are needed.
+* Linux Ubuntu 22.04 OS with Kernel version 5.15.0-92 or greater
+* At least one AMD MA35D hardware acceleration card
+* AMD AMA SDK 1.1.1 or greater installed, for intructions on installing the SDK follow the instructions from the following [link](https://amd.github.io/ama-sdk/v1.1.1/getting_started_on_prem.html)
+* OBS Studio version 30.0 or greater installed via PPA
+* If you want to build the plugin you will need additional requirements which are listed and explained on the Build Plugin section. Also you can follow the instructions from OBS Studio Wiki using the following [link](https://github.com/obsproject/obs-studio/wiki/Build-Instructions-For-Linux).
 
-### Platform Configuration
+### Before launching OBS
 
-Platform-specific settings are set up in the `platformConfig` section of the buildspec file:
+It is necessary to do some additional configurations on your PC before launching OBS and using the plugin:
 
-* `bundleId`: macOS bundle identifier for the plugin. Should be unique and follow reverse domain name notation.
+For MA35D card to work properly it is necessary to run a setup script that sets some necessary environment variables. This script is added to your pc when installing AMD AMA SDK, to run the script there are different approaches you can take: 
 
-### Set Up Build Dependencies
+* The easiest method is to configure your bash profile, for this purpose open the file `/etc/profile` and add the following line at the end of this file:
 
-Just like OBS Studio itself, plugins need to be built using dependencies available either via the `obs-deps` repository (Windows and macOS) or via a distribution's package system (Linux).
+`source /opt/amd/ama/ma35/scripts/setup.sh`
 
-#### Choose An OBS Studio Version
+* Alternatively you can run the same command every time you open a new terminal and afterwards launch OBS from that same terminal.
 
-By default the plugin template specifies the most current official OBS Studio version in the `buildspec.json` file, which makes most sense for plugins at the start of development. As far as updating the targeted OBS Studio version is concerned, a few things need to be considered:
+## Installation
 
-* Plugins targeting _older_ versions of OBS Studio should _generally_ also work in newer versions, with the exception of breaking changes to specific APIs which would also be explicitly called out in release notes
-* Plugins targeting the _latest_ version of OBS Studio might not work in older versions because the internal data structures used by `libobs` might not be compatible
-* Users are encouraged to always update to the most recent version of OBS Studio available within a reasonable time after release - plugin authors have to choose for themselves if they'd rather keep up with OBS Studio releases or stay with an older version as their baseline (which might of course preclude the plugin from using functionality introduced in a newer version)
+The plugin can be installed using dpkg command once you have the plugin package, to install the package run the following command:
 
-On Linux, the version used for development might be decided by the specific version available via a distribution's package management system, so OBS Studio compatibility for plugins might be determined by those versions instead.
+`dpkg -i obs-amd-ama-plugin.deb`
 
-#### Windows and macOS
+After running command, AMD AMA Plugin features should be available when launching OBS.
 
-Windows and macOS dependency downloads are configured in the `buildspec.json` file:
+## Build Plugin
 
-* `dependencies`:
-    * `obs-studio`: Version of OBS Studio to build plugin with (needed for `libobs` and `obs-frontend-api`)
-    * `prebuilt`: Prebuilt OBS Studio dependencies
-    * `qt6`: Prebuilt version of Qt6 as used by OBS Studio
-* `tools`: Contains additional build tools used by CI
+### Install dependencies: 
 
-The values should be kept in sync with OBS Studio releases and the `buildspec.json` file in use by the main project to ensure that the plugin is developed and built in sync with its target environment.
+* The dependencies for building the plugin are installed via `apt`. If your OS and kernel version are the ones mentioned on the section Set Up the version of the libraries to be installed will be the correct ones.
 
-To update a dependency, change the `version` and associated `hashes` entries to match the new version. The used hash algorithm is `sha256`.
+    * Build system dependencies
+    ```
+    sudo apt install cmake ninja-build pkg-config clang clang-format build-essential curl ccache git zsh
+    ```
 
-#### Linux
+    * OBS dependencies (core):
+    ```
+    sudo apt install libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavutil-dev libswresample-dev libswscale-dev libx264-dev libcurl4-openssl-dev libmbedtls-dev libgl1-mesa-dev libjansson-dev libluajit-5.1-dev python3-dev libx11-dev libxcb-randr0-dev libxcb-shm0-dev libxcb-xinerama0-dev libxcb-composite0-dev libxcomposite-dev libxinerama-dev libxcb1-dev libx11-xcb-dev libxcb-xfixes0-dev swig libcmocka-dev libxss-dev libglvnd-dev libgles2-mesa libgles2-mesa-dev libwayland-dev libvpl2 libsrt-openssl-dev libpci-dev libpipewire-0.3-dev libqrcodegencpp-dev
+    ```
 
-Linux dependencies need to be resolved using the package management tools appropriate for the local distribution. As an example, building on Ubuntu requires the following packages to be installed:
+    * OBS Qt6 dependencies (UI):
+    ```
+    sudo apt install \
+           qt6-base-dev \
+           qt6-base-private-dev \
+           libqt6svg6-dev \
+           qt6-wayland \
+           qt6-image-formats-plugins
+    ```
 
-* Build System Dependencies:
-    * `cmake`
-    * `ninja-build`
-    * `pkg-config`
-* Build Dependencies:
-    * `build-essential`
-    * `libobs-dev`
-* Qt6 Dependencies:
-    * `qt6-base-dev`
-    * `libqt6svg6-dev`
-    * `qt6-base-private-dev`
+    * Plugin dependencies:
+    ```
+    sudo apt install \
+           libasound2-dev \
+           libfdk-aac-dev \
+           libfontconfig-dev \
+           libfreetype6-dev \
+           libjack-jackd2-dev \
+           libpulse-dev libsndio-dev \
+           libspeexdsp-dev \
+           libudev-dev \
+           libv4l-dev \
+           libva-dev \
+           libvlc-dev \
+           libvpl-dev \
+           libdrm-dev \
+           nlohmann-json3-dev \
+           libwebsocketpp-dev \
+           libasio-dev
+    ```
 
-## Build System Configuration
+### Build
+Once you install the dependencies of the section above, to build the plugin run the following commands from the plugin main directory:
 
-To create a build configuration, `cmake` needs to be installed on the system. The plugin template supports CMake presets using the `CMakePresets.json` file and ships with default presets:
+* `cd .github/scripts`
+* `./build-linux`
 
-* `macos`
-    * Universal architecture (supports Intel-based CPUs as Apple Silicon)
-    * Defaults to Qt version `6`
-    * Defaults to macOS deployment target `11.0`
-* `macos-ci`
-    * Inherits from `macos`
-    * Enables compile warnings as error
-* `windows-x64`
-    * Windows 64-bit architecture
-    * Defaults to Qt version `6`
-    * Defaults to Visual Studio 17 2022
-    * Defaults to Windows SDK version `10.0.18363.657`
-* `windows-ci-x64`
-    * Inherits from `windows-x64`
-    * Enables compile warnings as error
-* `linux-x86_64`
-    * Linux x86_64 architecture
-    * Defaults to Qt version `6`
-    * Defaults to Ninja as build tool
-    * Defaults to `RelWithDebInfo` build configuration
-* `linux-ci-x86_64`
-    * Inherits from `linux-x86_64`
-    * Enables compile warnings as error
-* `linux-aarch64`
-    * Provided as an experimental preview feature
-    * Linux aarch64 (ARM64) architecture
-    * Defaults to Qt version `6`
-    * Defaults to Ninja as build tool
-    * Defaults to `RelWithDebInfo` build configuration
-* `linux-ci-aarch64`
-    * Inherits from `linux-aarch64`
-    * Enables compile warnings as error
+After running these two commands you will have a build folder named `build_x86_64`, particularly this folder will contain the shared object associated with the plugin `obs-amd-ama.so`. If you want to create a `.deb` package of the plugin you can run the following command in the plugin main directory:
 
-Presets can be either specified on the command line (`cmake --preset <PRESET>`) or via the associated select field in the CMake Windows GUI. Only presets appropriate for the current build host are available for selection.
+`cmake --build build_x86_64 --target package`
 
-Additional build system options are available to developers:
+## Known Limitations
 
-* `ENABLE_CCACHE`: Enables support for compilation speed-ups via ccache (enabled by default on macOS and Linux)
-* `ENABLE_FRONTEND_API`: Adds OBS Frontend API support for interactions with OBS Studio frontend functionality (disabled by default)
-* `ENABLE_QT`: Adds Qt6 support for custom user interface elements (disabled by default)
-* `CODESIGN_IDENTITY`: Name of the Apple Developer certificate that should be used for code signing
-* `CODESIGN_TEAM`: Apple Developer team ID that should be used for code signing
+This plugin has the following limitations:
 
-## GitHub Actions & CI
+* The plugin only works with a PPA OBS Studio installation, it is not compatible with a Flatpack installation.
 
-Default GitHub Actions workflows are available for the following repository actions:
+* It is not currently possible for the user to select an encoding level, the encoding level selection is done by the plugin taking into account the characteristics of the stream or recording to be created.
 
-* `push`: Run for commits or tags pushed to `master` or `main` branches.
-* `pr-pull`: Run when a Pull Request has been pushed or synchronized.
-* `dispatch`: Run when triggered by the workflow dispatch in GitHub's user interface.
-* `build-project`: Builds the actual project and is triggered by other workflows.
-* `check-format`: Checks CMake and plugin source code formatting and is triggered by other workflows.
+* It is not possible for the user to select the amount of B frames for the encoding, the amount of B frames is selected by the plugin taking into account the characteristics of the stream or recording to be created.
 
-The workflows make use of GitHub repository actions (contained in `.github/actions`) and build scripts (contained in `.github/scripts`) which are not needed for local development, but might need to be adjusted if additional/different steps are required to build the plugin.
+* The only possible input pixel format for this plugin is I42O. If another pixel format is selected by the user, the plugin will convert it to I420 format. 
 
-### Retrieving build artifacts
+* It is not currently possible to change encoder settings while doing streaming. If the user needs to change encoding settings, it must stop the streaming, change the encoding settings and start again the stream.
 
-Successful builds on GitHub Actions will produce build artifacts that can be downloaded for testing. These artifacts are commonly simple archives and will not contain package installers or installation programs.
-
-### Building a Release
-
-To create a release, an appropriately named tag needs to be pushed to the `main`/`master` branch using semantic versioning (e.g., `12.3.4`, `23.4.5-beta2`). A draft release will be created on the associated repository with generated installer packages or installation programs attached as release artifacts.
-
-## Signing and Notarizing on macOS
-
-Plugins released for macOS should be codesigned and notarized with a valid Apple Developer ID for best user experience. To set this up, the private and personal key of a **paid Apple Developer ID** need to be downloaded from the Apple Developer portal:
-
-* On your Apple Developer dashboard, go to "Certificates, IDs & Profiles" and create two signing certificates:
-    * One of the "Developer ID Application" type. It will be used to sign the plugin's binaries
-    * One of the "Developer ID Installer" type. It will be used to sign the plugin's installer
-
-The developer certificate will usually carry a name similar in form to
-
-`Developer ID Application: <FIRSTNAME> <LASTNAME> (<LETTERS_AND_NUMBERS>)`
-
-This entire string should be specified as `CODESIGN_IDENTITY`, the `LETTERS_AND_NUMBERS` part as `CODESIGN_TEAM` to CMake to set up codesigning properly.
-
-### GitHub Actions Set Up
-
-To use code signing on GitHub Actions, the certificate and associated information need to be set up as _repository secrets_ in the GitHub repository's settings.
-
-* First, the locally stored developer certificate needs to be exported from the macOS keychain:
-    * Using the Keychain app on macOS, export these your certificates (Application and Installer) public _and_ private keys into a single .p12 file **protected with a strong password**
-    * Encode the .p12 file into its base64 representation by running `base64 <NAME_OF_YOUR_P12_FILE>`
-* Next, the certificate data and the password used to export it need to be set up as repository secrets:
-    * `MACOS_SIGNING_APPLICATION_IDENTITY`: Name of the "Developer ID Application" signing certificate
-    * `MACOS_SIGNING_INSTALLER_IDENTITY`: Name of "Developer ID Installer" signing certificate
-    * `MACOS_SIGNING_CERT`: The base64 encoded `.p12` file
-    * `MACOS_SIGNING_CERT_PASSWORD`: Password used to generate the .p12 certificate
-* To also enable notarization on GitHub Action runners, the following repository secrets are required:
-    * `MACOS_NOTARIZATION_USERNAME`: Your Apple Developer account's _Apple ID_
-    * `MACOS_NOTARIZATION_PASSWORD`: Your Apple Developer account's _generated app password_
