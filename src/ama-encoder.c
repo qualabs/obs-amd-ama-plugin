@@ -202,7 +202,7 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 				     ? control_rate
 				     : ENC_RC_MODE_DEFAULT;
 	enc_props->qp_mode = ENC_DEFAULT_QP_MODE;
-	enc_props->preset = XMA_ENC_PRESET_DEFAULT;
+	enc_props->preset = (int)obs_data_get_int(custom_settings, "preset");
 	enc_props->cores = XMA_ENC_CORES_DEFAULT;
 	enc_props->profile = (int)obs_data_get_int(custom_settings, "profile");
 	enc_props->level = ENC_DEFAULT_LEVEL;
@@ -297,7 +297,16 @@ int32_t encoder_create(obs_data_t *settings, obs_encoder_t *encoder,
 	xrm_props.fps_num = enc_ctx->enc_props.fps;
 	xrm_props.fps_den = 1;
 	xrm_props.enc_cores = enc_ctx->enc_props.cores;
-	strcpy(xrm_props.preset, "medium");
+	switch (enc_ctx->enc_props.preset) {
+	case XMA_ENC_PRESET_SLOW:
+		strcpy(xrm_props.preset, "slow");
+	case XMA_ENC_PRESET_MEDIUM:
+		strcpy(xrm_props.preset, "medium");
+	case XMA_ENC_PRESET_FAST:
+		strcpy(xrm_props.preset, "fast");
+	default:
+		strcpy(xrm_props.preset, "medium");
+	}
 	xrm_props.is_la_enabled = enc_ctx->enc_props.lookahead_depth != 0;
 	bool isAV1 = enc_ctx->codec == ENCODER_ID_AV1;
 	enc_ctx->xrm_enc_ctx.slice_id = enc_ctx->enc_props.slice;

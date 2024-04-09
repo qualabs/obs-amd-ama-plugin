@@ -46,6 +46,7 @@ OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 #define TEXT_PROFILE obs_module_text("Profile")
 #define TEXT_LEVEL obs_module_text("Level")
 #define TEXT_LOOK_AHEAD obs_module_text("Look Ahead")
+#define TEXT_PRESET obs_module_text("Preset")
 #define TEXT_NONE obs_module_text("None")
 
 struct encoder_type_data {
@@ -212,6 +213,13 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 				   1);
 	obs_property_int_set_suffix(p, " s");
 
+	list = obs_properties_add_list(props, "", TEXT_PRESET,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "slow", XMA_ENC_PRESET_SLOW);
+	obs_property_list_add_int(list, "medium", XMA_ENC_PRESET_MEDIUM);
+	obs_property_list_add_int(list, "fast", XMA_ENC_PRESET_FAST);
+
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
 	obs_property_set_visible(headers, false);
@@ -269,6 +277,13 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 				   1);
 	obs_property_int_set_suffix(p, " s");
 
+	list = obs_properties_add_list(props, "", TEXT_PRESET,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "slow", XMA_ENC_PRESET_SLOW);
+	obs_property_list_add_int(list, "medium", XMA_ENC_PRESET_MEDIUM);
+	obs_property_list_add_int(list, "fast", XMA_ENC_PRESET_FAST);
+
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
 	obs_property_set_visible(headers, false);
@@ -311,6 +326,13 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 				   1);
 	obs_property_int_set_suffix(p, " s");
 
+	list = obs_properties_add_list(props, "", TEXT_PRESET,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "slow", XMA_ENC_PRESET_SLOW);
+	obs_property_list_add_int(list, "medium", XMA_ENC_PRESET_MEDIUM);
+	obs_property_list_add_int(list, "fast", XMA_ENC_PRESET_DEFAULT);
+
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
 	obs_property_set_visible(headers, false);
@@ -329,6 +351,7 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_CBR);
 	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
+	obs_data_set_default_int(settings, "preset", XMA_ENC_PRESET_DEFAULT);
 }
 
 bool ama_get_extra_data(void *data, uint8_t **extra_data, size_t *size)
