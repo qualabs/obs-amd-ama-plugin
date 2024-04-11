@@ -128,9 +128,7 @@ void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_h264\n");
 	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
-	bool valid_encoding_level =
-		ama_validate_encoding_level(settings, encoder);
-	if (!valid_encoding_level) {
+	if (!ama_validate_encoding_level(settings, encoder)) {
 		return NULL;
 	}
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
@@ -144,6 +142,9 @@ void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_hevc \n");
 	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
+	if (!ama_validate_encoding_level(settings, encoder)) {
+		return NULL;
+	}
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
 	enc_ctx->codec = ENCODER_ID_HEVC;
 	encoder_create(settings, encoder, enc_ctx);
@@ -155,6 +156,9 @@ void *ama_create_av1(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_av1 \n");
 	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
+	if (!ama_validate_encoding_level(settings, encoder)) {
+		return NULL;
+	}
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
 	enc_ctx->codec = ENCODER_ID_AV1;
 	encoder_create(settings, encoder, enc_ctx);
