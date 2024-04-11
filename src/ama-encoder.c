@@ -205,7 +205,7 @@ void initialize_encoder_context(EncoderCtx *enc_ctx)
 	enc_props->preset = XMA_ENC_PRESET_DEFAULT;
 	enc_props->cores = XMA_ENC_CORES_DEFAULT;
 	enc_props->profile = (int)obs_data_get_int(custom_settings, "profile");
-	enc_props->level = ENC_DEFAULT_LEVEL;
+	enc_props->level = (int)obs_data_get_int(custom_settings, "level");
 	enc_props->tier = -1;
 	enc_props->lookahead_depth =
 		obs_data_get_bool(custom_settings, "lookahead")

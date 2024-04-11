@@ -78,10 +78,61 @@ const char *ama_get_name_av1(void *type_data)
 	return "AMD AMA AV1";
 }
 
+bool check_and_set_error(int width, int height, int fps, int current_level, double required_level, obs_encoder_t *encoder) {
+    if (current_level >= required_level) {
+        return true;
+    }
+
+    char message[256];
+    snprintf(message, sizeof(message),
+             "Wrong encoding level for resolution selected, %dx%d@%d needs at least level %.1f",
+             width, height, fps, required_level);
+    obs_encoder_set_last_error(encoder, obs_module_text(message));
+    return false;
+}
+
+bool ama_validate_encoding_level(obs_data_t *settings, obs_encoder_t *encoder) {
+    obs_log(LOG_INFO, "ama_validate_encoding_level\n");
+    video_t *video = obs_encoder_video(encoder);
+    const struct video_output_info *voi = video_output_get_info(video);
+    int width = voi->width;
+    int height = voi->height;
+    int fps = voi->fps_num;
+    int level = (int) obs_data_get_int(settings, "level");
+
+    printf("the value of width is %d\n", width);
+    printf("the value of fps is %d\n", fps);
+    printf("the value of level is %d\n", level);
+
+    if (width <= 696) {
+        if (fps <= 15) return check_and_set_error(width, height, fps, level, ENC_LEVEL_22, encoder);
+        if (fps <= 30) return check_and_set_error(width, height, fps, level, ENC_LEVEL_30, encoder);
+        return check_and_set_error(width, height, fps, level, ENC_LEVEL_31, encoder);
+    }
+
+    if (width <= 1280) {
+        if (fps <= 30) return check_and_set_error(width, height, fps, level, ENC_LEVEL_31, encoder);
+        return check_and_set_error(width, height, fps, level, ENC_LEVEL_32, encoder);
+    }
+
+    if (width <= 1920) {
+        if (fps <= 30) return check_and_set_error(width, height, fps, level, ENC_LEVEL_40, encoder);
+        return check_and_set_error(width, height, fps, level, ENC_LEVEL_42, encoder);
+    }
+
+    if (fps <= 30) return check_and_set_error(width, height, fps, level, ENC_LEVEL_50, encoder);
+    return check_and_set_error(width, height, fps, level, ENC_LEVEL_52, encoder);
+}
+
 void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_h264\n");
 	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
+	bool valid_encoding_level =
+		ama_validate_encoding_level(settings, encoder);
+	if (!valid_encoding_level) {
+		return NULL;
+	}
 	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
 	enc_ctx->codec = ENCODER_ID_H264;
 	encoder_create(settings, encoder, enc_ctx);
@@ -208,6 +259,18 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	obs_property_list_add_int(list, "high10", ENC_H264_HIGH_10);
 	obs_property_list_add_int(list, "high10 intra", ENC_H264_HIGH_10_INTRA);
 
+	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "3.1", ENC_LEVEL_31);
+	obs_property_list_add_int(list, "3.2", ENC_LEVEL_32);
+	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
+	obs_property_list_add_int(list, "4.1", ENC_LEVEL_41);
+	obs_property_list_add_int(list, "4.2", ENC_LEVEL_42);
+	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
+	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
+	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
+
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
 	obs_property_int_set_suffix(p, " s");
@@ -327,6 +390,7 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "max_bitrate",
 				 ENC_DEFAULT_MAX_BITRATE);
 	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_CBR);
+	obs_data_set_default_int(settings, "control_rate", ENC_DEFAULT_LEVEL);
 	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
 }
