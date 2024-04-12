@@ -52,6 +52,11 @@ struct encoder_type_data {
 	const char *disp_name;
 };
 
+typedef struct {
+	EncoderCtx *enc;
+	ScalerCtx *scl;
+} AmaCtx;
+
 static inline void add_strings(obs_property_t *list, const char *const *strings)
 {
 	while (*strings) {
@@ -82,46 +87,61 @@ void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_h264\n");
 	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
-	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
-	enc_ctx->codec = ENCODER_ID_H264;
-	encoder_create(settings, encoder, enc_ctx);
+	AmaCtx *ctx = bzalloc(sizeof(AmaCtx));
+	ctx->scl = bzalloc(sizeof(ScalerCtx));
+	ctx->enc = bzalloc(sizeof(EncoderCtx));
+	ctx->enc->codec = ENCODER_ID_H264;
+	scaler_create(settings, encoder, ctx->scl);
+	encoder_create(settings, encoder, ctx->enc);
 
-	return enc_ctx;
+	return ctx;
 }
 
 void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_hevc \n");
 	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
-	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
-	enc_ctx->codec = ENCODER_ID_HEVC;
-	encoder_create(settings, encoder, enc_ctx);
+	AmaCtx *ctx = bzalloc(sizeof(AmaCtx));
+	ctx->scl = bzalloc(sizeof(ScalerCtx));
+	ctx->enc = bzalloc(sizeof(EncoderCtx));
+	ctx->enc->codec = ENCODER_ID_HEVC;
+	scaler_create(settings, encoder, ctx->scl);
+	encoder_create(settings, encoder, ctx->enc);
 
-	return enc_ctx;
+	return ctx;
 }
 
 void *ama_create_av1(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_av1 \n");
 	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
-	EncoderCtx *enc_ctx = bzalloc(sizeof(EncoderCtx));
-	enc_ctx->codec = ENCODER_ID_AV1;
-	encoder_create(settings, encoder, enc_ctx);
+	AmaCtx *ctx = bzalloc(sizeof(AmaCtx));
+	//ctx->scl = bzalloc(sizeof(ScalerCtx));
+	ctx->enc = bzalloc(sizeof(EncoderCtx));
+	ctx->enc->codec = ENCODER_ID_AV1;
+	//scaler_create(settings, encoder, ctx->scl);
+	encoder_create(settings, encoder, ctx->enc);
 
-	return enc_ctx;
+	return ctx;
 }
 
 void ama_destroy(void *data)
 {
 	obs_log(LOG_INFO, "ama_destroy\n");
-	encoder_destroy(data);
+	AmaCtx *ctx = data;
+	encoder_destroy(ctx->enc);
+	//scaler_destroy(ctx->scl);
+	bfree(ctx);
 }
 
-bool ama_encode(void *enc_ctx, struct encoder_frame *frame,
+bool ama_encode(void *data, struct encoder_frame *frame,
 		struct encoder_packet *packet, bool *received_packet)
 {
-	bool res = encoder_process_frame(frame, packet, received_packet,
-					 enc_ctx) != XMA_ERROR;
+	bool res = true;
+	AmaCtx *ctx = (AmaCtx *)data;
+	//res &= scaler_process_frame(frame, ctx->scl) != XMA_ERROR;
+	res &= encoder_process_frame(frame, packet, received_packet,
+				     ctx->enc) != XMA_ERROR;
 	return res;
 }
 
@@ -334,7 +354,8 @@ static void obs_ama_defaults(obs_data_t *settings)
 bool ama_get_extra_data(void *data, uint8_t **extra_data, size_t *size)
 {
 	obs_log(LOG_INFO, "ama_get_extra_data \n");
-	EncoderCtx *enc_ctx = (EncoderCtx *)data;
+    AmaCtx *ctx = data;
+	EncoderCtx *enc_ctx = ctx->enc;
 	*size = enc_ctx->header_size;
 	*extra_data = enc_ctx->header_data;
 	return true;
@@ -343,7 +364,8 @@ bool ama_get_extra_data(void *data, uint8_t **extra_data, size_t *size)
 bool ama_get_sei_data(void *data, uint8_t **sei_data, size_t *size)
 {
 	obs_log(LOG_INFO, "ama_get_sei_data \n");
-	EncoderCtx *enc_ctx = (EncoderCtx *)data;
+    AmaCtx *ctx = data;
+	EncoderCtx *enc_ctx = ctx->enc;
 	*size = enc_ctx->sei_size;
 	*sei_data = enc_ctx->sei_data;
 	return enc_ctx->codec != ENCODER_ID_AV1;
