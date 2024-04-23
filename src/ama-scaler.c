@@ -37,7 +37,7 @@ static int32_t scal_create_xma_props(AmaCtx *ctx, int session_id,
 	out_props->stride = ctx->enc_frame_props.width;
 	out_props->framerate.numerator = ctx->enc_props.fps;
 	out_props->framerate.denominator = 1;
-    return XMA_SUCCESS;
+	return XMA_SUCCESS;
 }
 
 static int scal_create_frame_props(AmaCtx *ctx)
@@ -71,12 +71,10 @@ static int scal_create_frame_props(AmaCtx *ctx)
 	return XMA_SUCCESS;
 }
 
-int32_t scaler_create(obs_data_t *settings, obs_encoder_t *encoder, AmaCtx *ctx)
+int32_t scaler_reserve(AmaCtx *ctx)
 {
-	(void)settings;
-	(void)encoder;
-	int32_t ret = XMA_ERROR;
 	// Reserve xrm resource
+	int32_t ret = XRM_SUCCESS;
 	XrmInterfaceProperties input_props;
 	memset(&input_props, 0, sizeof(input_props));
 	const ScalerProps *scale_props = &ctx->abr_params;
@@ -93,28 +91,23 @@ int32_t scaler_create(obs_data_t *settings, obs_encoder_t *encoder, AmaCtx *ctx)
 	out_props->fps_den = 1;
 	if (xrm_scale_reserve(&ctx->scaler_xrm_ctx, ctx->enc_props.device_id,
 			      &input_props, out_props, 1) == XRM_ERROR) {
-		return XMA_ERROR;
+		return XRM_ERROR;
 	}
 	free(out_props);
-	XmaInitParameter xma_init_param;
-	memset(&xma_init_param, 0, sizeof(XmaInitParameter));
-	char m_app_name[32];
-	strcpy(m_app_name, XLNX_SCALER_APP_MODULE);
-	xma_init_param.app_name = m_app_name;
-	xma_init_param.device = ctx->enc_props.device_id;
-	xma_init_param.params = NULL;
-	xma_init_param.param_cnt = 0;
+	return ret;
+}
 
-	if ((ret = xma_initialize(ctx->log, &xma_init_param, &ctx->handle)) !=
-	    XMA_SUCCESS) {
+int32_t scaler_create(AmaCtx *ctx)
+{
+	int32_t ret = XMA_SUCCESS;
+	ret = scal_create_xma_props(ctx, 0, &ctx->abr_xma_props);
+	ctx->abr_xma_props.handle = ctx->handle;
+	ctx->scl_session = xma_scaler_session_create(&ctx->abr_xma_props);
+	if (!ctx->scl_session) {
 		xma_logmsg(ctx->log, XMA_ERROR_LOG, XLNX_SCALER_APP_MODULE,
-			   "XMA Initialization failed\n");
+			   "Failed to create scaler session\n");
 		return XMA_ERROR;
 	}
-	xma_logmsg(ctx->log, XMA_INFO_LOG, XLNX_SCALER_APP_MODULE,
-		   "XMA initialization success\n");
-
-	ctx->abr_xma_props.handle = ctx->handle;
 	return ret;
 }
 

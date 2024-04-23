@@ -12,8 +12,9 @@
 
 typedef enum { PLANE_Y = 0, PLANE_U, PLANE_V } PlaneId;
 
-int32_t scaler_create(obs_data_t *settings, obs_encoder_t *encoder,
-		      AmaCtx *ctx);
+int32_t scaler_reserve(AmaCtx *ctx);
+
+int32_t scaler_create(AmaCtx *ctx);
 
 int32_t scaler_process_frame(struct encoder_frame *frame, AmaCtx *ctx);
 
