@@ -1,11 +1,66 @@
 #include <ama-context.h>
 
-AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle, int32_t codec)
+scaler_resolution getResolution(int scalerConstant)
+{
+	scaler_resolution resolution;
+
+	switch (scalerConstant) {
+	case 0: // SCALER_RES_1920_1080
+		resolution.height = 1080;
+		resolution.width = 1920;
+		break;
+	case 1: // SCALER_RES_1536_864
+		resolution.height = 864;
+		resolution.width = 1536;
+		break;
+	case 2: // SCALER_RES_1280_720
+		resolution.height = 720;
+		resolution.width = 1280;
+		break;
+	case 3: // SCALER_RES_1152_648
+		resolution.height = 648;
+		resolution.width = 1152;
+		break;
+	case 4: // SCALER_RES_1096_616
+		resolution.height = 616;
+		resolution.width = 1096;
+		break;
+	case 5: // SCALER_RES_960_540
+		resolution.height = 540;
+		resolution.width = 960;
+		break;
+	case 6: // SCALER_RES_852_480
+		resolution.height = 480;
+		resolution.width = 852;
+		break;
+	case 7: // SCALER_RES_768_432
+		resolution.height = 432;
+		resolution.width = 768;
+		break;
+	case 8: // SCALER_RES_698_392
+		resolution.height = 392;
+		resolution.width = 698;
+		break;
+	case 9: // SCALER_RES_640_360
+		resolution.height = 360;
+		resolution.width = 640;
+		break;
+	default:
+		resolution.height = 0;
+		resolution.width = 0;
+		break;
+	}
+
+	return resolution;
+}
+
+AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
+			   int32_t codec)
 {
 	AmaCtx *ctx = bzalloc(sizeof(AmaCtx));
 	ctx->codec = codec;
-    ctx->enc_handle = enc_handle;
-    ctx->settings = settings;
+	ctx->enc_handle = enc_handle;
+	ctx->settings = settings;
 	EncoderProperties *enc_props = &ctx->enc_props;
 	video_t *video = obs_encoder_video(ctx->enc_handle);
 	const struct video_output_info *voi = video_output_get_info(video);
@@ -72,12 +127,12 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle, int3
 	enc_props->tune_metrics = 1;
 	enc_props->dynamic_gop = -1;
 	enc_props->pix_fmt = XMA_YUV420P_FMT_TYPE;
-    return ctx;
+	return ctx;
 }
 
 int32_t ama_initialize_sdk(AmaCtx *ctx)
 {
-    int32_t ret = XMA_SUCCESS;
+	int32_t ret = XMA_SUCCESS;
 	ret = xma_log_init(XMA_WARNING_LOG, XMA_LOG_TYPE_CONSOLE,
 			   &ctx->filter_log);
 	if (ret != XMA_SUCCESS) {
@@ -106,7 +161,7 @@ int32_t ama_initialize_sdk(AmaCtx *ctx)
 		xma_logmsg(ctx->log, XMA_ERROR_LOG, ctx->app_name,
 			   "XMA Initialization failed\n");
 	}
-    return ret;
+	return ret;
 }
 
 int32_t context_destroy(AmaCtx *ctx)
@@ -122,6 +177,6 @@ int32_t context_destroy(AmaCtx *ctx)
 	}
 	xma_log_release(ctx->log);
 	ctx->log = NULL;
-    bfree(ctx);
-    return 0;
+	bfree(ctx);
+	return 0;
 }

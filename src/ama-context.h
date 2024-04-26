@@ -173,6 +173,22 @@ typedef enum HevcProfiles {
 #define ENC_RC_MODE_DEFAULT -1
 #define ENC_DEFAULT_LEVEL 0
 
+#define SCALER_RES_1920_1080 0
+#define SCALER_RES_1536_864 1
+#define SCALER_RES_1280_720 2
+#define SCALER_RES_1152_648 3
+#define SCALER_RES_1096_616 4
+#define SCALER_RES_960_540 5
+#define SCALER_RES_852_480 6
+#define SCALER_RES_768_432 7
+#define SCALER_RES_698_392 8
+#define SCALER_RES_640_360 9
+
+typedef struct {
+    uint32_t height;
+    uint32_t width;
+} scaler_resolution;
+
 typedef struct ScalerProps {
 	XmaFormatType pix_fmt;
 	int32_t bits_per_pixel;

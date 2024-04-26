@@ -48,6 +48,8 @@ OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 #define TEXT_PROFILE obs_module_text("Profile")
 #define TEXT_LEVEL obs_module_text("Level")
 #define TEXT_LOOK_AHEAD obs_module_text("Look Ahead")
+#define TEXT_SCALE_OUTPUT obs_module_text("Scale Output")
+#define TEXT_SCALE_RESOLUTION obs_module_text("Resolution")
 #define TEXT_NONE obs_module_text("None")
 
 struct encoder_type_data {
@@ -167,6 +169,15 @@ static bool look_ahead_modified(obs_properties_t *ppts, obs_property_t *p,
 	return true;
 }
 
+static bool enable_scaling_modified(obs_properties_t *ppts, obs_property_t *p,
+				    obs_data_t *settings)
+{
+	bool scaling_enabled = obs_data_get_bool(settings, "enable_scaling");
+	p = obs_properties_get(ppts, "scaler_resolution");
+	obs_property_set_visible(p, scaling_enabled);
+	return true;
+}
+
 static obs_properties_t *obs_ama_props_h264(void *unused)
 {
 	UNUSED_PARAMETER(unused);
@@ -217,6 +228,24 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
 	obs_property_int_set_suffix(p, " s");
+
+	p = obs_properties_add_bool(props, "enable_scaling", TEXT_SCALE_OUTPUT);
+	obs_property_set_modified_callback(p, enable_scaling_modified);
+
+	list = obs_properties_add_list(props, "scaler_resolution",
+				       TEXT_SCALE_RESOLUTION,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "1920x1080", SCALER_RES_1920_1080);
+	obs_property_list_add_int(list, "1536x864", SCALER_RES_1536_864);
+	obs_property_list_add_int(list, "1280x720", SCALER_RES_1280_720);
+	obs_property_list_add_int(list, "1152x548", SCALER_RES_1152_648);
+	obs_property_list_add_int(list, "1096x616", SCALER_RES_1096_616);
+	obs_property_list_add_int(list, "960x540", SCALER_RES_960_540);
+	obs_property_list_add_int(list, "852x480", SCALER_RES_852_480);
+	obs_property_list_add_int(list, "768x432", SCALER_RES_768_432);
+	obs_property_list_add_int(list, "698x392", SCALER_RES_698_392);
+	obs_property_list_add_int(list, "640x360", SCALER_RES_640_360);
 
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
@@ -275,6 +304,24 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 				   1);
 	obs_property_int_set_suffix(p, " s");
 
+	p = obs_properties_add_bool(props, "enable_scaling", TEXT_SCALE_OUTPUT);
+	obs_property_set_modified_callback(p, enable_scaling_modified);
+
+	list = obs_properties_add_list(props, "scaler_resolution",
+				       TEXT_SCALE_RESOLUTION,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "1920x1080", SCALER_RES_1920_1080);
+	obs_property_list_add_int(list, "1536x864", SCALER_RES_1536_864);
+	obs_property_list_add_int(list, "1280x720", SCALER_RES_1280_720);
+	obs_property_list_add_int(list, "1152x548", SCALER_RES_1152_648);
+	obs_property_list_add_int(list, "1096x616", SCALER_RES_1096_616);
+	obs_property_list_add_int(list, "960x540", SCALER_RES_960_540);
+	obs_property_list_add_int(list, "852x480", SCALER_RES_852_480);
+	obs_property_list_add_int(list, "768x432", SCALER_RES_768_432);
+	obs_property_list_add_int(list, "698x392", SCALER_RES_698_392);
+	obs_property_list_add_int(list, "640x360", SCALER_RES_640_360);
+
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
 	obs_property_set_visible(headers, false);
@@ -317,6 +364,24 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 				   1);
 	obs_property_int_set_suffix(p, " s");
 
+	p = obs_properties_add_bool(props, "enable_scaling", TEXT_SCALE_OUTPUT);
+	obs_property_set_modified_callback(p, enable_scaling_modified);
+
+	list = obs_properties_add_list(props, "scaler_resolution",
+				       TEXT_SCALE_RESOLUTION,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "1920x1080", SCALER_RES_1920_1080);
+	obs_property_list_add_int(list, "1536x864", SCALER_RES_1536_864);
+	obs_property_list_add_int(list, "1280x720", SCALER_RES_1280_720);
+	obs_property_list_add_int(list, "1152x548", SCALER_RES_1152_648);
+	obs_property_list_add_int(list, "1096x616", SCALER_RES_1096_616);
+	obs_property_list_add_int(list, "960x540", SCALER_RES_960_540);
+	obs_property_list_add_int(list, "852x480", SCALER_RES_852_480);
+	obs_property_list_add_int(list, "768x432", SCALER_RES_768_432);
+	obs_property_list_add_int(list, "698x392", SCALER_RES_698_392);
+	obs_property_list_add_int(list, "640x360", SCALER_RES_640_360);
+
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
 	obs_property_set_visible(headers, false);
@@ -335,6 +400,7 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_CBR);
 	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
+	obs_data_set_default_bool(settings, "enable_scaling", false);
 }
 
 bool ama_get_extra_data(void *data, uint8_t **extra_data, size_t *size)
