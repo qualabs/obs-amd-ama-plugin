@@ -173,20 +173,20 @@ typedef enum HevcProfiles {
 #define ENC_RC_MODE_DEFAULT -1
 #define ENC_DEFAULT_LEVEL 0
 
-#define SCALER_RES_1920_1080 0
-#define SCALER_RES_1536_864 1
-#define SCALER_RES_1280_720 2
-#define SCALER_RES_1152_648 3
-#define SCALER_RES_1096_616 4
-#define SCALER_RES_960_540 5
-#define SCALER_RES_852_480 6
-#define SCALER_RES_768_432 7
-#define SCALER_RES_698_392 8
-#define SCALER_RES_640_360 9
+#define SCALER_RES_1920_1080 "1920x1080"
+#define SCALER_RES_1536_864 "1536x864"
+#define SCALER_RES_1280_720 "1280x720"
+#define SCALER_RES_1152_648 "1152x648"
+#define SCALER_RES_1096_616 "1096x616"
+#define SCALER_RES_960_540 "960x540"
+#define SCALER_RES_852_480 "852x480"
+#define SCALER_RES_768_432 "768x432"
+#define SCALER_RES_698_392 "698x392"
+#define SCALER_RES_640_360 "640x360"
 
 typedef struct {
-    uint32_t height;
-    uint32_t width;
+	uint32_t height;
+	uint32_t width;
 } scaler_resolution;
 
 typedef struct ScalerProps {
@@ -276,7 +276,8 @@ typedef struct {
 	XmaFrameProperties scaler_input_fprops;
 } AmaCtx;
 
-AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle, int32_t codec);
+AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
+			   int32_t codec);
 
 int32_t ama_initialize_sdk(AmaCtx *ctx);
 
