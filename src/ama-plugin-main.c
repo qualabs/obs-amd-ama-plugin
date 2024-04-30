@@ -78,8 +78,9 @@ const char *ama_get_name_av1(void *type_data)
 	return "AMD AMA AV1";
 }
 
-bool check_level_and_set_error(int width, int height, int fps, int current_level,
-			 double required_level, obs_encoder_t *encoder)
+bool check_level_and_set_error(int width, int height, int fps,
+			       int current_level, double required_level,
+			       obs_encoder_t *encoder)
 {
 	if (current_level >= required_level) {
 		return true;
@@ -106,36 +107,40 @@ bool ama_validate_encoding_level(obs_data_t *settings, obs_encoder_t *encoder)
 
 	if (width <= 696) {
 		if (fps <= 15)
-			return check_level_and_set_error(width, height, fps, level,
-						   ENC_LEVEL_22, encoder);
+			return check_level_and_set_error(width, height, fps,
+							 level, ENC_LEVEL_22,
+							 encoder);
 		if (fps <= 30)
-			return check_level_and_set_error(width, height, fps, level,
-						   ENC_LEVEL_30, encoder);
+			return check_level_and_set_error(width, height, fps,
+							 level, ENC_LEVEL_30,
+							 encoder);
 		return check_level_and_set_error(width, height, fps, level,
-					   ENC_LEVEL_31, encoder);
+						 ENC_LEVEL_31, encoder);
 	}
 
 	if (width <= 1280) {
 		if (fps <= 30)
-			return check_level_and_set_error(width, height, fps, level,
-						   ENC_LEVEL_31, encoder);
+			return check_level_and_set_error(width, height, fps,
+							 level, ENC_LEVEL_31,
+							 encoder);
 		return check_level_and_set_error(width, height, fps, level,
-					   ENC_LEVEL_32, encoder);
+						 ENC_LEVEL_32, encoder);
 	}
 
 	if (width <= 1920) {
 		if (fps <= 30)
-			return check_level_and_set_error(width, height, fps, level,
-						   ENC_LEVEL_40, encoder);
+			return check_level_and_set_error(width, height, fps,
+							 level, ENC_LEVEL_40,
+							 encoder);
 		return check_level_and_set_error(width, height, fps, level,
-					   ENC_LEVEL_42, encoder);
+						 ENC_LEVEL_42, encoder);
 	}
 
 	if (fps <= 30)
 		return check_level_and_set_error(width, height, fps, level,
-					   ENC_LEVEL_50, encoder);
-	return check_level_and_set_error(width, height, fps, level, ENC_LEVEL_52,
-				   encoder);
+						 ENC_LEVEL_50, encoder);
+	return check_level_and_set_error(width, height, fps, level,
+					 ENC_LEVEL_52, encoder);
 }
 
 void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
