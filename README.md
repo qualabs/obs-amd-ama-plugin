@@ -1,4 +1,8 @@
-<img src="images/qualabs_logo.png" width="150" alt="qualabs logo">
+<p align="center">
+   <a href="https://qualabs.com" target="_blank">
+      <img src="images/qualabs_logo.png" width="250" alt="qualabs logo" style="background-color: #0d1117">
+   </a>
+</p>
 
 # OBS AMD AMA Plugin
 
