@@ -114,7 +114,7 @@ After running these two commands you will have a build folder named `build_x86_6
 ![av1 screenshot](images/av1_screenshot.png)
 
 
-### H264 and HEVC
+### AVC/H.264 & HEVC/H.265
 #### Params:
 * Rate control: Rate control mode for custom rate control Supported values are 0 (constant QP), 1 (CBR), 2 (VBR), and 3 (CVBR).
 * Look Ahead: Enables look ahead and shows the bframe config.
