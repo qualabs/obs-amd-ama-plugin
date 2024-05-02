@@ -4,8 +4,9 @@
 
 ## Introduction
 
-Enables Hardware Acceleration encoding in AVC/H.264, HEVC/H.265 and AV1 using the AMD Alveo™️ MA35D
-It also includes:
+Enables Hardware Acceleration encoding in AVC/H.264, HEVC/H.265 and AV1 using the AMD Alveo™️ MA35D.
+
+#### It also includes:
 
 * A CMake project file
 * GitHub Actions workflows and repository actions
@@ -103,7 +104,7 @@ After running these two commands you will have a build folder named `build_x86_6
 
 ### AV1
 #### Params:
-* Rate control: Rate control mode for custom rate control Supported values are 0 (constant QP), 1 (CBR), 2 (VBR), and 3 (CVBR).
+* Rate control: Rate control mode for custom rate control Supported values are CQP, CBR and CRF.
 * Bitrate: Bitrate of output data (in kbps). Max: 3500000
 * Key frame interval: Inserts a key frame using the interval configured. If 0 it inserts a keyframe every 2 seconds.
 * Preset: Encoder VQ-Density preset. Valid values: fast, medium or slow. (default is medium).
@@ -116,7 +117,7 @@ After running these two commands you will have a build folder named `build_x86_6
 
 ### AVC/H.264 & HEVC/H.265
 #### Params:
-* Rate control: Rate control mode for custom rate control Supported values are 0 (constant QP), 1 (CBR), 2 (VBR), and 3 (CVBR).
+* Rate control: Rate control mode for custom rate control Supported values are CQP, CBR and CRF.
 * Look Ahead: Enables look ahead and shows the bframe config.
   - B Frames: Number of B frames. Valid values for H.264 and HEVC: 0-3
 * Bitrate: Bitrate of output data (in kbps). Max: 3500000
