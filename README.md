@@ -1,3 +1,5 @@
+<img src="images/qualabs_logo.png" width="150" alt="qualabs logo">
+
 # OBS AMD AMA Plugin
 
 ## Introduction
