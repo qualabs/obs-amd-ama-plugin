@@ -27,6 +27,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 #include "ama-scaler.h"
 #include "ama-filter.h"
 #include "ama-context.h"
+#include <ctype.h>
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
@@ -178,6 +179,114 @@ static bool enable_scaling_modified(obs_properties_t *ppts, obs_property_t *p,
 	return true;
 }
 
+static bool is_valid_value(const char *text)
+{
+	int str_len = strlen(text);
+	bool has_x_char = false;
+	bool is_width = true;
+	int width_digits = 0;
+	int height_digits = 0;
+	if (str_len > 0) {
+		for (int i = 0; i < str_len; i++) {
+			if (!isdigit(text[i])) {
+				if (i == 0) {
+					return false;
+				} else if (text[i] != 'x') {
+					return false;
+				} else if (text[i] == 'x') {
+					if (has_x_char) {
+						return false;
+					} else {
+						is_width = false;
+						has_x_char = true;
+					}
+				}
+			} else {
+				if (is_width) {
+					width_digits++;
+				} else {
+					height_digits++;
+				}
+				if (width_digits > 5 || height_digits > 5) {
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+static char *filter_digits_and_x(const char *str)
+{
+	size_t new_str_len = 0;
+	char *new_str = NULL;
+	bool has_x_char = false;
+	bool is_width = true;
+	int width_digits = 0;
+	int height_digits = 0;
+	// Iterate through the original string
+	for (const char *c = str; *c != '\0'; ++c) {
+		// Check if character is a digit or 'x' (but not the first character)
+		if (isdigit(*c) || (*c == 'x' && c != str)) {
+
+			//If char is an x but already has x ignore it
+			if (*c == 'x' && has_x_char) {
+				continue;
+			}
+
+			// Update flag if 'x' is encountered and change counter to count height
+			if (*c == 'x') {
+				has_x_char = true;
+				is_width = false;
+			} else {
+				//Check number of digits for width and height
+				if (is_width) {
+					if (width_digits > 5) {
+						continue;
+					}
+					width_digits++;
+				} else {
+					if (height_digits > 5) {
+						continue;
+					}
+					height_digits++;
+				}
+			}
+
+			// Increase new string length
+			new_str_len++;
+
+			// Reallocate memory for new string (if needed)
+			new_str = (char *)realloc(new_str, new_str_len + 1);
+			if (new_str == NULL) {
+				return NULL; // Handle memory allocation error
+			}
+
+			// Add the character to the new string
+			new_str[new_str_len - 1] = *c;
+		}
+	}
+
+	// Add null terminator if necessary
+	if (new_str_len > 0) {
+		new_str[new_str_len] = '\0';
+	}
+
+	return new_str;
+}
+
+static bool check_resolution_value(obs_properties_t *ppts, obs_property_t *p,
+				   obs_data_t *settings)
+{
+	p = obs_properties_get(ppts, "scaler_resolution");
+	const char *text = obs_data_get_string(settings, "scaler_resolution");
+	if (!is_valid_value(text)) {
+		char *new_text = filter_digits_and_x(text);
+		obs_data_set_string(settings, "scaler_resolution", new_text);
+	}
+	return true;
+}
+
 static obs_properties_t *obs_ama_props_h264(void *unused)
 {
 	UNUSED_PARAMETER(unused);
@@ -246,6 +355,7 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	obs_property_list_add_string(list, "768x432", SCALER_RES_768_432);
 	obs_property_list_add_string(list, "698x392", SCALER_RES_698_392);
 	obs_property_list_add_string(list, "640x360", SCALER_RES_640_360);
+	obs_property_set_modified_callback(list, check_resolution_value);
 
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
@@ -321,6 +431,7 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	obs_property_list_add_string(list, "768x432", SCALER_RES_768_432);
 	obs_property_list_add_string(list, "698x392", SCALER_RES_698_392);
 	obs_property_list_add_string(list, "640x360", SCALER_RES_640_360);
+	obs_property_set_modified_callback(list, check_resolution_value);
 
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
@@ -381,6 +492,7 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 	obs_property_list_add_string(list, "768x432", SCALER_RES_768_432);
 	obs_property_list_add_string(list, "698x392", SCALER_RES_698_392);
 	obs_property_list_add_string(list, "640x360", SCALER_RES_640_360);
+	obs_property_set_modified_callback(list, check_resolution_value);
 
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
