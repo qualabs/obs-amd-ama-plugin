@@ -1,11 +1,12 @@
 #include <ama-context.h>
 
-AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle, int32_t codec)
+AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
+			   int32_t codec)
 {
 	AmaCtx *ctx = bzalloc(sizeof(AmaCtx));
 	ctx->codec = codec;
-    ctx->enc_handle = enc_handle;
-    ctx->settings = settings;
+	ctx->enc_handle = enc_handle;
+	ctx->settings = settings;
 	EncoderProperties *enc_props = &ctx->enc_props;
 	video_t *video = obs_encoder_video(ctx->enc_handle);
 	const struct video_output_info *voi = video_output_get_info(video);
@@ -31,7 +32,7 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle, int3
 			: ENC_DEFAULT_MAX_BITRATE;
 	enc_props->crf = control_rate == ENC_CRF_ENABLE_ALIAS ? ENC_CRF_ENABLE
 							      : ENC_CRF_DISABLE;
-	enc_props->force_idr = ctx->codec == ENC_IDR_ENABLE;
+	enc_props->force_idr = ENC_IDR_ENABLE;
 	enc_props->fps = voi->fps_num / voi->fps_den;
 	enc_props->gop_size =
 		(int)obs_data_get_int(custom_settings, "keyint_sec") > 0
@@ -72,12 +73,12 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle, int3
 	enc_props->tune_metrics = 1;
 	enc_props->dynamic_gop = -1;
 	enc_props->pix_fmt = XMA_YUV420P_FMT_TYPE;
-    return ctx;
+	return ctx;
 }
 
 int32_t ama_initialize_sdk(AmaCtx *ctx)
 {
-    int32_t ret = XMA_SUCCESS;
+	int32_t ret = XMA_SUCCESS;
 	ret = xma_log_init(XMA_WARNING_LOG, XMA_LOG_TYPE_CONSOLE,
 			   &ctx->filter_log);
 	if (ret != XMA_SUCCESS) {
@@ -106,7 +107,7 @@ int32_t ama_initialize_sdk(AmaCtx *ctx)
 		xma_logmsg(ctx->log, XMA_ERROR_LOG, ctx->app_name,
 			   "XMA Initialization failed\n");
 	}
-    return ret;
+	return ret;
 }
 
 int32_t context_destroy(AmaCtx *ctx)
@@ -122,6 +123,6 @@ int32_t context_destroy(AmaCtx *ctx)
 	}
 	xma_log_release(ctx->log);
 	ctx->log = NULL;
-    bfree(ctx);
-    return 0;
+	bfree(ctx);
+	return 0;
 }

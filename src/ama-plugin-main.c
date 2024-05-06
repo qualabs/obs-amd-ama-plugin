@@ -1,10 +1,7 @@
 /*
-Plugin Name
-Copyright (C) <Year> <Developer> <Email Address>
-
-This program is free software; you can redistribute it and/or modify
+This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -12,8 +9,8 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along
-with this program. If not, see <https://www.gnu.org/licenses/>
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <obs-module.h>
@@ -48,6 +45,7 @@ OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 #define TEXT_PROFILE obs_module_text("Profile")
 #define TEXT_LEVEL obs_module_text("Level")
 #define TEXT_LOOK_AHEAD obs_module_text("Look Ahead")
+#define TEXT_PRESET obs_module_text("Preset")
 #define TEXT_NONE obs_module_text("None")
 
 struct encoder_type_data {
@@ -92,15 +90,88 @@ AmaCtx *ama_create(obs_data_t *settings, obs_encoder_t *encoder, int32_t codec)
 	return ctx;
 }
 
+bool check_level_and_set_error(int width, int height, int fps,
+			       int current_level, double required_level,
+			       obs_encoder_t *encoder)
+{
+	if (current_level >= required_level) {
+		return true;
+	}
+
+	char message[256];
+	snprintf(
+		message, sizeof(message),
+		"Wrong encoding level for resolution selected, %dx%d@%d needs at least level %.1f",
+		width, height, fps, required_level);
+	obs_encoder_set_last_error(encoder, obs_module_text(message));
+	return false;
+}
+
+bool ama_validate_encoding_level(obs_data_t *settings, obs_encoder_t *encoder)
+{
+	obs_log(LOG_INFO, "ama_validate_encoding_level\n");
+	video_t *video = obs_encoder_video(encoder);
+	const struct video_output_info *voi = video_output_get_info(video);
+	int width = voi->width;
+	int height = voi->height;
+	int fps = voi->fps_num;
+	int level = (int)obs_data_get_int(settings, "level");
+
+	if (width <= 696) {
+		if (fps <= 15)
+			return check_level_and_set_error(width, height, fps,
+							 level, ENC_LEVEL_22,
+							 encoder);
+		if (fps <= 30)
+			return check_level_and_set_error(width, height, fps,
+							 level, ENC_LEVEL_30,
+							 encoder);
+		return check_level_and_set_error(width, height, fps, level,
+						 ENC_LEVEL_31, encoder);
+	}
+
+	if (width <= 1280) {
+		if (fps <= 30)
+			return check_level_and_set_error(width, height, fps,
+							 level, ENC_LEVEL_31,
+							 encoder);
+		return check_level_and_set_error(width, height, fps, level,
+						 ENC_LEVEL_32, encoder);
+	}
+
+	if (width <= 1920) {
+		if (fps <= 30)
+			return check_level_and_set_error(width, height, fps,
+							 level, ENC_LEVEL_40,
+							 encoder);
+		return check_level_and_set_error(width, height, fps, level,
+						 ENC_LEVEL_42, encoder);
+	}
+
+	if (fps <= 30)
+		return check_level_and_set_error(width, height, fps, level,
+						 ENC_LEVEL_50, encoder);
+	return check_level_and_set_error(width, height, fps, level,
+					 ENC_LEVEL_52, encoder);
+}
+
 void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 {
-	obs_log(LOG_INFO, "ama_create_h264");
+	obs_log(LOG_INFO, "ama_create_h264\n");
+	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
+	if (!ama_validate_encoding_level(settings, encoder)) {
+		return NULL;
+	}
 	return ama_create(settings, encoder, ENCODER_ID_H264);
 }
 
 void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 {
-	obs_log(LOG_INFO, "ama_create_hevc");
+	obs_log(LOG_INFO, "ama_create_hevc\n");
+	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
+	if (!ama_validate_encoding_level(settings, encoder)) {
+		return NULL;
+	}
 	return ama_create(settings, encoder, ENCODER_ID_HEVC);
 }
 
@@ -214,9 +285,28 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	obs_property_list_add_int(list, "high10", ENC_H264_HIGH_10);
 	obs_property_list_add_int(list, "high10 intra", ENC_H264_HIGH_10_INTRA);
 
+	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "3.1", ENC_LEVEL_31);
+	obs_property_list_add_int(list, "3.2", ENC_LEVEL_32);
+	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
+	obs_property_list_add_int(list, "4.1", ENC_LEVEL_41);
+	obs_property_list_add_int(list, "4.2", ENC_LEVEL_42);
+	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
+	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
+	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
+
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
 	obs_property_int_set_suffix(p, " s");
+
+	list = obs_properties_add_list(props, "", TEXT_PRESET,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "slow", XMA_ENC_PRESET_SLOW);
+	obs_property_list_add_int(list, "medium", XMA_ENC_PRESET_MEDIUM);
+	obs_property_list_add_int(list, "fast", XMA_ENC_PRESET_FAST);
 
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
@@ -271,9 +361,28 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	obs_property_list_add_int(list, "main10", ENC_HEVC_MAIN_10);
 	obs_property_list_add_int(list, "main10 intra", ENC_HEVC_MAIN10_INTRA);
 
+	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "3.1", ENC_LEVEL_31);
+	obs_property_list_add_int(list, "3.2", ENC_LEVEL_32);
+	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
+	obs_property_list_add_int(list, "4.1", ENC_LEVEL_41);
+	obs_property_list_add_int(list, "4.2", ENC_LEVEL_42);
+	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
+	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
+	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
+
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
 	obs_property_int_set_suffix(p, " s");
+
+	list = obs_properties_add_list(props, "", TEXT_PRESET,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "slow", XMA_ENC_PRESET_SLOW);
+	obs_property_list_add_int(list, "medium", XMA_ENC_PRESET_MEDIUM);
+	obs_property_list_add_int(list, "fast", XMA_ENC_PRESET_FAST);
 
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
@@ -317,6 +426,13 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 				   1);
 	obs_property_int_set_suffix(p, " s");
 
+	list = obs_properties_add_list(props, "", TEXT_PRESET,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "slow", XMA_ENC_PRESET_SLOW);
+	obs_property_list_add_int(list, "medium", XMA_ENC_PRESET_MEDIUM);
+	obs_property_list_add_int(list, "fast", XMA_ENC_PRESET_DEFAULT);
+
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
 	obs_property_set_visible(headers, false);
@@ -333,8 +449,10 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "max_bitrate",
 				 ENC_DEFAULT_MAX_BITRATE);
 	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_CBR);
+	obs_data_set_default_int(settings, "level", ENC_DEFAULT_LEVEL);
 	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
+	obs_data_set_default_int(settings, "preset", XMA_ENC_PRESET_DEFAULT);
 }
 
 bool ama_get_extra_data(void *data, uint8_t **extra_data, size_t *size)
