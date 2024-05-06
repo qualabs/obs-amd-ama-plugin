@@ -260,7 +260,8 @@ typedef struct {
 	XmaFrameProperties scaler_input_fprops;
 } AmaCtx;
 
-AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle, int32_t codec);
+AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
+			   int32_t codec);
 
 int32_t ama_initialize_sdk(AmaCtx *ctx);
 

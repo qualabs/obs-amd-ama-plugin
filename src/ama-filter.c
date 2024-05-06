@@ -76,11 +76,11 @@ int32_t filter_get_xma_props(EncoderProperties *enc_props,
 
 int32_t filter_create(AmaCtx *ctx)
 {
-    ama_initialize_sdk(ctx);
+	ama_initialize_sdk(ctx);
 	ctx->xma_upload_props.handle = ctx->handle;
 	filter_get_xma_props(&ctx->enc_props, &ctx->xma_upload_props);
 	ctx->upload_session = xma_filter_session_create(&ctx->xma_upload_props);
-    return XMA_SUCCESS;
+	return XMA_SUCCESS;
 }
 
 int32_t filter_upload_frame(struct encoder_frame *frame, AmaCtx *ctx)
@@ -145,5 +145,5 @@ int32_t filter_destroy(AmaCtx *ctx)
 		xma_filter_session_destroy(ctx->upload_session);
 		ctx->upload_session = NULL;
 	}
-    return 0;
+	return 0;
 }
