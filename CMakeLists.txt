@@ -4,6 +4,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/common/bootstrap.cmake" NO_POLICY_SCO
 
 project(${_name} VERSION ${_version})
 
+# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(ENABLE_FRONTEND_API "Use obs-frontend-api for UI functionality" OFF)
 option(ENABLE_QT "Use Qt functionality" OFF)
 
@@ -45,6 +46,7 @@ if(ENABLE_QT)
                AUTORCC ON)
 endif()
 
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/ama-plugin-main.c src/ama-encoder.c src/ama-scaler.c)
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/ama-plugin-main.c src/ama-filter.c src/ama-encoder.c src/ama-scaler.c
+                                             src/ama-context.c)
 
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})
