@@ -81,11 +81,10 @@ const char *ama_get_name_av1(void *type_data)
 AmaCtx *ama_create(obs_data_t *settings, obs_encoder_t *encoder, int32_t codec)
 {
 	AmaCtx *ctx = ama_create_context(settings, encoder, codec);
+	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
 	encoder_reserve(ctx);
-	scaler_reserve(ctx);
 	ama_initialize_sdk(ctx);
 	filter_create(ctx);
-	scaler_create(ctx);
 	encoder_create(ctx);
 	return ctx;
 }
@@ -158,7 +157,6 @@ bool ama_validate_encoding_level(obs_data_t *settings, obs_encoder_t *encoder)
 void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_h264\n");
-	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
 	if (!ama_validate_encoding_level(settings, encoder)) {
 		return NULL;
 	}
@@ -168,7 +166,6 @@ void *ama_create_h264(obs_data_t *settings, obs_encoder_t *encoder)
 void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_hevc\n");
-	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
 	if (!ama_validate_encoding_level(settings, encoder)) {
 		return NULL;
 	}
