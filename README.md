@@ -23,7 +23,7 @@ In order to use the plugin it is necessary to have the following requirements on
 
 * Linux Ubuntu 22.04 OS with Kernel version 5.15.0-92 or greater
 * At least one AMD Alveo™️ MA35D hardware acceleration card
-* AMD AMA SDK 1.1.2 or greater installed, for intructions on installing the SDK follow the instructions from the following [link](https://amd.github.io/ama-sdk/v1.1.1/getting_started_on_prem.html)
+* AMD AMA SDK 1.1.2 or greater installed, for intructions on installing the SDK follow the instructions from the following [link](https://amd.github.io/ama-sdk/v1.1.2/getting_started_on_prem.html)
 * OBS Studio version 30.0 or greater installed via PPA
 * If you want to build the plugin you will need additional requirements which are listed and explained on the Build Plugin section. Also you can follow the instructions from OBS Studio Wiki using the following [link](https://github.com/obsproject/obs-studio/wiki/Build-Instructions-For-Linux).
 
