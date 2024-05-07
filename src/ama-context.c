@@ -9,39 +9,43 @@ scaler_resolution getResolution(int scalerConstant)
 		resolution.height = 1080;
 		resolution.width = 1920;
 		break;
-	case 1: // SCALER_RES_1536_864
+	case 1: // SCALER_RES_1664_936
+		resolution.height = 1664;
+		resolution.width = 936;
+		break;
+	case 2: // SCALER_RES_1536_864
 		resolution.height = 864;
 		resolution.width = 1536;
 		break;
-	case 2: // SCALER_RES_1280_720
+	case 3: // SCALER_RES_1280_720
 		resolution.height = 720;
 		resolution.width = 1280;
 		break;
-	case 3: // SCALER_RES_1152_648
+	case 4: // SCALER_RES_1152_648
 		resolution.height = 648;
 		resolution.width = 1152;
 		break;
-	case 4: // SCALER_RES_1096_616
+	case 5: // SCALER_RES_1096_616
 		resolution.height = 616;
 		resolution.width = 1096;
 		break;
-	case 5: // SCALER_RES_960_540
+	case 6: // SCALER_RES_960_540
 		resolution.height = 540;
 		resolution.width = 960;
 		break;
-	case 6: // SCALER_RES_852_480
+	case 7: // SCALER_RES_852_480
 		resolution.height = 480;
 		resolution.width = 852;
 		break;
-	case 7: // SCALER_RES_768_432
+	case 8: // SCALER_RES_768_432
 		resolution.height = 432;
 		resolution.width = 768;
 		break;
-	case 8: // SCALER_RES_698_392
+	case 9: // SCALER_RES_698_392
 		resolution.height = 392;
 		resolution.width = 698;
 		break;
-	case 9: // SCALER_RES_640_360
+	case 10: // SCALER_RES_640_360
 		resolution.height = 360;
 		resolution.width = 640;
 		break;
@@ -65,6 +69,7 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 	video_t *video = obs_encoder_video(ctx->enc_handle);
 	const struct video_output_info *voi = video_output_get_info(video);
 	obs_data_t *custom_settings = ctx->settings;
+	scaler_resolution scaler_res;
 	int control_rate =
 		(int)obs_data_get_int(custom_settings, "control_rate");
 	/* Initialize the encoder parameters */
@@ -127,6 +132,10 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 	enc_props->tune_metrics = 1;
 	enc_props->dynamic_gop = -1;
 	enc_props->pix_fmt = XMA_YUV420P_FMT_TYPE;
+	scaler_res = getResolution(
+		(int)obs_data_get_int(custom_settings, "scaler_resolution"));
+	enc_props->width = scaler_res.width;
+	enc_props->height = scaler_res.height;
 	return ctx;
 }
 

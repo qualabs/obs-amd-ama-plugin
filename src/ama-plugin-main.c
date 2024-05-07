@@ -179,112 +179,24 @@ static bool enable_scaling_modified(obs_properties_t *ppts, obs_property_t *p,
 	return true;
 }
 
-static bool is_valid_value(const char *text)
+static void add_scaler_resolutions(obs_properties_t *props)
 {
-	int str_len = strlen(text);
-	bool has_x_char = false;
-	bool is_width = true;
-	int width_digits = 0;
-	int height_digits = 0;
-	if (str_len > 0) {
-		for (int i = 0; i < str_len; i++) {
-			if (!isdigit(text[i])) {
-				if (i == 0) {
-					return false;
-				} else if (text[i] != 'x') {
-					return false;
-				} else if (text[i] == 'x') {
-					if (has_x_char) {
-						return false;
-					} else {
-						is_width = false;
-						has_x_char = true;
-					}
-				}
-			} else {
-				if (is_width) {
-					width_digits++;
-				} else {
-					height_digits++;
-				}
-				if (width_digits > 5 || height_digits > 5) {
-					return false;
-				}
-			}
-		}
-	}
-	return true;
-}
-
-static char *filter_digits_and_x(const char *str)
-{
-	size_t new_str_len = 0;
-	char *new_str = NULL;
-	bool has_x_char = false;
-	bool is_width = true;
-	int width_digits = 0;
-	int height_digits = 0;
-	// Iterate through the original string
-	for (const char *c = str; *c != '\0'; ++c) {
-		// Check if character is a digit or 'x' (but not the first character)
-		if (isdigit(*c) || (*c == 'x' && c != str)) {
-
-			//If char is an x but already has x ignore it
-			if (*c == 'x' && has_x_char) {
-				continue;
-			}
-
-			// Update flag if 'x' is encountered and change counter to count height
-			if (*c == 'x') {
-				has_x_char = true;
-				is_width = false;
-			} else {
-				//Check number of digits for width and height
-				if (is_width) {
-					if (width_digits > 5) {
-						continue;
-					}
-					width_digits++;
-				} else {
-					if (height_digits > 5) {
-						continue;
-					}
-					height_digits++;
-				}
-			}
-
-			// Increase new string length
-			new_str_len++;
-
-			// Reallocate memory for new string (if needed)
-			new_str = (char *)realloc(new_str, new_str_len + 1);
-			if (new_str == NULL) {
-				return NULL; // Handle memory allocation error
-			}
-
-			// Add the character to the new string
-			new_str[new_str_len - 1] = *c;
-		}
-	}
-
-	// Add null terminator if necessary
-	if (new_str_len > 0) {
-		new_str[new_str_len] = '\0';
-	}
-
-	return new_str;
-}
-
-static bool check_resolution_value(obs_properties_t *ppts, obs_property_t *p,
-				   obs_data_t *settings)
-{
-	p = obs_properties_get(ppts, "scaler_resolution");
-	const char *text = obs_data_get_string(settings, "scaler_resolution");
-	if (!is_valid_value(text)) {
-		char *new_text = filter_digits_and_x(text);
-		obs_data_set_string(settings, "scaler_resolution", new_text);
-	}
-	return true;
+	obs_property_t *list;
+	list = obs_properties_add_list(props, "scaler_resolution",
+				       TEXT_SCALE_RESOLUTION,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "1920x1080", SCALER_RES_1920_1080);
+	obs_property_list_add_int(list, "1664x936", SCALER_RES_1664_936);
+	obs_property_list_add_int(list, "1536x864", SCALER_RES_1536_864);
+	obs_property_list_add_int(list, "1280x720", SCALER_RES_1280_720);
+	obs_property_list_add_int(list, "1152x548", SCALER_RES_1152_648);
+	obs_property_list_add_int(list, "1096x616", SCALER_RES_1096_616);
+	obs_property_list_add_int(list, "960x540", SCALER_RES_960_540);
+	obs_property_list_add_int(list, "852x480", SCALER_RES_852_480);
+	obs_property_list_add_int(list, "768x432", SCALER_RES_768_432);
+	obs_property_list_add_int(list, "698x392", SCALER_RES_698_392);
+	obs_property_list_add_int(list, "640x360", SCALER_RES_640_360);
 }
 
 static obs_properties_t *obs_ama_props_h264(void *unused)
@@ -341,21 +253,7 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	p = obs_properties_add_bool(props, "enable_scaling", TEXT_SCALE_OUTPUT);
 	obs_property_set_modified_callback(p, enable_scaling_modified);
 
-	list = obs_properties_add_list(props, "scaler_resolution",
-				       TEXT_SCALE_RESOLUTION,
-				       OBS_COMBO_TYPE_EDITABLE,
-				       OBS_COMBO_FORMAT_STRING);
-	obs_property_list_add_string(list, "1920x1080", SCALER_RES_1920_1080);
-	obs_property_list_add_string(list, "1536x864", SCALER_RES_1536_864);
-	obs_property_list_add_string(list, "1280x720", SCALER_RES_1280_720);
-	obs_property_list_add_string(list, "1152x548", SCALER_RES_1152_648);
-	obs_property_list_add_string(list, "1096x616", SCALER_RES_1096_616);
-	obs_property_list_add_string(list, "960x540", SCALER_RES_960_540);
-	obs_property_list_add_string(list, "852x480", SCALER_RES_852_480);
-	obs_property_list_add_string(list, "768x432", SCALER_RES_768_432);
-	obs_property_list_add_string(list, "698x392", SCALER_RES_698_392);
-	obs_property_list_add_string(list, "640x360", SCALER_RES_640_360);
-	obs_property_set_modified_callback(list, check_resolution_value);
+	add_scaler_resolutions(props);
 
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
@@ -417,21 +315,7 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	p = obs_properties_add_bool(props, "enable_scaling", TEXT_SCALE_OUTPUT);
 	obs_property_set_modified_callback(p, enable_scaling_modified);
 
-	list = obs_properties_add_list(props, "scaler_resolution",
-				       TEXT_SCALE_RESOLUTION,
-				       OBS_COMBO_TYPE_EDITABLE,
-				       OBS_COMBO_FORMAT_STRING);
-	obs_property_list_add_string(list, "1920x1080", SCALER_RES_1920_1080);
-	obs_property_list_add_string(list, "1536x864", SCALER_RES_1536_864);
-	obs_property_list_add_string(list, "1280x720", SCALER_RES_1280_720);
-	obs_property_list_add_string(list, "1152x548", SCALER_RES_1152_648);
-	obs_property_list_add_string(list, "1096x616", SCALER_RES_1096_616);
-	obs_property_list_add_string(list, "960x540", SCALER_RES_960_540);
-	obs_property_list_add_string(list, "852x480", SCALER_RES_852_480);
-	obs_property_list_add_string(list, "768x432", SCALER_RES_768_432);
-	obs_property_list_add_string(list, "698x392", SCALER_RES_698_392);
-	obs_property_list_add_string(list, "640x360", SCALER_RES_640_360);
-	obs_property_set_modified_callback(list, check_resolution_value);
+	add_scaler_resolutions(props);
 
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
@@ -478,21 +362,7 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 	p = obs_properties_add_bool(props, "enable_scaling", TEXT_SCALE_OUTPUT);
 	obs_property_set_modified_callback(p, enable_scaling_modified);
 
-	list = obs_properties_add_list(props, "scaler_resolution",
-				       TEXT_SCALE_RESOLUTION,
-				       OBS_COMBO_TYPE_EDITABLE,
-				       OBS_COMBO_FORMAT_STRING);
-	obs_property_list_add_string(list, "1920x1080", SCALER_RES_1920_1080);
-	obs_property_list_add_string(list, "1536x864", SCALER_RES_1536_864);
-	obs_property_list_add_string(list, "1280x720", SCALER_RES_1280_720);
-	obs_property_list_add_string(list, "1152x548", SCALER_RES_1152_648);
-	obs_property_list_add_string(list, "1096x616", SCALER_RES_1096_616);
-	obs_property_list_add_string(list, "960x540", SCALER_RES_960_540);
-	obs_property_list_add_string(list, "852x480", SCALER_RES_852_480);
-	obs_property_list_add_string(list, "768x432", SCALER_RES_768_432);
-	obs_property_list_add_string(list, "698x392", SCALER_RES_698_392);
-	obs_property_list_add_string(list, "640x360", SCALER_RES_640_360);
-	obs_property_set_modified_callback(list, check_resolution_value);
+	add_scaler_resolutions(props);
 
 	headers = obs_properties_add_bool(props, "repeat_headers",
 					  "repeat_headers");
@@ -513,8 +383,8 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
 	obs_data_set_default_bool(settings, "enable_scaling", false);
-	obs_data_set_default_string(settings, "scaler_resolution",
-				    SCALER_RES_1920_1080);
+	obs_data_set_default_int(settings, "scaler_resolution",
+				 SCALER_RES_1920_1080);
 }
 
 bool ama_get_extra_data(void *data, uint8_t **extra_data, size_t *size)
