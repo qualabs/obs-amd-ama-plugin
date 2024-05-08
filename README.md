@@ -1,8 +1,16 @@
-# AMD AMA Plugin
+<p align="center">
+   <a href="https://qualabs.com" target="_blank">
+      <img src="images/qualabs_logo.png" width="250" alt="qualabs logo">
+   </a>
+</p>
+
+# OBS AMD AMA Plugin
 
 ## Introduction
 
-The plugin provides an AVC, HEVC and AV1 encoder done by the hardware accelerator card AMD MA35D. It also includes:
+Enables Hardware Acceleration encoding in AVC/H.264, HEVC/H.265 and AV1 using the AMD Alveo™️ MA35D.
+
+#### It also includes:
 
 * A CMake project file
 * GitHub Actions workflows and repository actions
@@ -14,8 +22,8 @@ The plugin provides an AVC, HEVC and AV1 encoder done by the hardware accelerato
 In order to use the plugin it is necessary to have the following requirements on your PC:
 
 * Linux Ubuntu 22.04 OS with Kernel version 5.15.0-92 or greater
-* At least one AMD MA35D hardware acceleration card
-* AMD AMA SDK 1.1.1 or greater installed, for intructions on installing the SDK follow the instructions from the following [link](https://amd.github.io/ama-sdk/v1.1.1/getting_started_on_prem.html)
+* At least one AMD Alveo™️ MA35D hardware acceleration card
+* AMD AMA SDK 1.1.2 or greater installed, for intructions on installing the SDK follow the instructions from the following [link](https://amd.github.io/ama-sdk/v1.1.2/getting_started_on_prem.html)
 * OBS Studio version 30.0 or greater installed via PPA
 * If you want to build the plugin you will need additional requirements which are listed and explained on the Build Plugin section. Also you can follow the instructions from OBS Studio Wiki using the following [link](https://github.com/obsproject/obs-studio/wiki/Build-Instructions-For-Linux).
 
@@ -23,7 +31,7 @@ In order to use the plugin it is necessary to have the following requirements on
 
 It is necessary to do some additional configurations on your PC before launching OBS and using the plugin:
 
-For MA35D card to work properly it is necessary to run a setup script that sets some necessary environment variables. This script is added to your pc when installing AMD AMA SDK, to run the script there are different approaches you can take: 
+For AMD Alveo™️ MA35D card to work properly it is necessary to run a setup script that sets some necessary environment variables. This script is added to your pc when installing AMD AMA SDK, to run the script there are different approaches you can take: 
 
 * The easiest method is to configure your bash profile, for this purpose open the file `/etc/profile` and add the following line at the end of this file:
 
@@ -96,15 +104,53 @@ After running these two commands you will have a build folder named `build_x86_6
 
 `cmake --build build_x86_64 --target package`
 
+## Usage
+
+### AV1
+#### Params:
+* Rate control: Rate control mode for custom rate control. Supported values are CQP, CBR and CRF.
+* Bitrate: Bitrate of output data (in kbps). Max: 3500000
+* Key frame interval: Inserts a key frame using the interval configured. If 0 it inserts a keyframe every 2 seconds.
+* Preset: Encoder VQ-Density preset. Valid values: fast, medium or slow. (default is medium).
+  - (fast) Allows for increase in total throughput from 4kp60 to 4kp75 , when 2 or more channels are used. Does not apply to AV1 -type 1 encoding. Not applicable under ULL setting. Note lower VQ than medium preset is to be expected.
+  - (medium) Full density with medium VQ - default
+  - (slow) High VQ at lower density. Applicable to 10 bit contents only.
+
+![av1 screenshot](images/av1_screenshot.png)
+
+
+### AVC/H.264 & HEVC/H.265
+#### Params:
+* Rate control: Rate control mode for custom rate control. Supported values are CQP, CBR and CRF.
+* Look Ahead: Enables look ahead and shows the bframe config.
+  - B Frames: Number of B frames. Valid values for H.264 and HEVC: 0-3
+* Bitrate: Bitrate of output data (in kbps). Max: 3500000
+* Profile: Encoding profile. Valid values are: 
+  - 0 (Baseline), 1 (Main), 2 (High), 3 (High 10), or 4 (High 10 Intra) for H.264 
+  - 100 (Main), 101 (Main Intra), 102 (Main 10), or 103 (Main 10 Intra) for HEVC 
+  - -1 (Auto) for any codec.
+* Level: Encoding level restriction
+  - Valid values for H.264: 1, 1.1, 1.2, 1.3, 2, 2.1, 2.2, 3, 3.1, 3.2, 4, 4.1, 4.2, 5, 5.1, 5.2 6, 6.1, 6.2
+  - Valid values for HEVC: 1, 2, 2.1, 3, 3.1, 4, 4.1, 5, 5.1,5.2, 6, 6.1, 6.2
+* Key frame interval: Inserts a key frame using the interval configured. If 0 it inserts a keyframe every 2 seconds.
+* Preset: Encoder VQ-Density preset. Valid values: fast, medium or slow. (default is medium).
+  - (fast) Allows for increase in total throughput from 4kp60 to 4kp75 , when 2 or more channels are used. Does not apply to AV1 -type 1 encoding. Not applicable under ULL setting. Note lower VQ than medium preset is to be expected.
+  - (medium) Full density with medium VQ - default
+  - (slow) High VQ at lower density. Applicable to 10 bit contents only.
+
+![h264 screenshot](images/h264_screenshot.png)
+
+![h264 screenshot](images/h264_look_ahead_screenshot.png)
+
+![hevc screenshot](images/hevc_screenshot.png)
+
 ## Known Limitations
 
 This plugin has the following limitations:
 
 * The plugin only works with a PPA OBS Studio installation, it is not compatible with a Flatpack installation.
 
-* It is not currently possible for the user to select an encoding level, the encoding level selection is done by the plugin taking into account the characteristics of the stream or recording to be created.
-
-* It is not possible for the user to select the amount of B frames for the encoding, the amount of B frames is selected by the plugin taking into account the characteristics of the stream or recording to be created.
+* It is not possible for the user to select the amount of B frames for the encoding when using AV1, the amount of B frames is selected by the plugin taking into account the characteristics of the stream or recording to be created.
 
 * The only possible input pixel format for this plugin is I42O. If another pixel format is selected by the user, the plugin will convert it to I420 format. 
 
