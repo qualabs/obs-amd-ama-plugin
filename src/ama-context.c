@@ -10,8 +10,8 @@ scaler_resolution getResolution(int scalerConstant)
 		resolution.width = 1920;
 		break;
 	case 1: // SCALER_RES_1664_936
-		resolution.height = 1664;
-		resolution.width = 936;
+		resolution.height = 936;
+		resolution.width = 1664;
 		break;
 	case 2: // SCALER_RES_1536_864
 		resolution.height = 864;
@@ -66,6 +66,7 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 	ctx->enc_handle = enc_handle;
 	ctx->settings = settings;
 	EncoderProperties *enc_props = &ctx->enc_props;
+	ScalerProps *scale_props = &ctx->abr_params;
 	video_t *video = obs_encoder_video(ctx->enc_handle);
 	const struct video_output_info *voi = video_output_get_info(video);
 	obs_data_t *custom_settings = ctx->settings;
@@ -132,11 +133,62 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 	enc_props->tune_metrics = 1;
 	enc_props->dynamic_gop = -1;
 	enc_props->pix_fmt = XMA_YUV420P_FMT_TYPE;
-	scaler_res = getResolution(
-		(int)obs_data_get_int(custom_settings, "scaler_resolution"));
-	enc_props->width = scaler_res.width;
-	enc_props->height = scaler_res.height;
+	bool is_scaling = obs_data_get_bool(custom_settings, "enable_scaling");
+	if (is_scaling) {
+		scaler_res = getResolution((int)obs_data_get_int(
+			custom_settings, "scaler_resolution"));
+		ctx->scaler_input_fprops.width = voi->width;
+		ctx->scaler_input_fprops.height = voi->height;
+		ctx->scaler_input_fprops.format = XMA_VPE_FMT_TYPE;
+		ctx->scaler_input_fprops.sw_format = XMA_YUV420P_FMT_TYPE;
+		ctx->scaler_input_fprops.bits_per_pixel = 8;
+		for (int i = 0; i < 3; i++) {
+			ctx->scaler_input_fprops.linesize[i] =
+				get_valid_line_size(ctx, i);
+		}
+		// ctx->scaler_input_fprops.sw_format = XMA_VPE_FMT_TYPE;
+		enc_props->width = scaler_res.width;
+		enc_props->height = scaler_res.height;
+		scale_props->width = voi->width;
+		scale_props->height = voi->height;
+	}
 	return ctx;
+}
+
+int get_valid_line_size(AmaCtx *ctx, int plane)
+{
+	XmaFrameProperties *fprops;
+	bool is_scaling = obs_data_get_bool(ctx->settings, "enable_scaling");
+	if (!is_scaling) {
+		fprops = &ctx->enc_frame_props;
+	} else {
+		fprops = &ctx->scaler_input_fprops;
+	}
+	switch (fprops->sw_format) {
+	case XMA_YUV420P_FMT_TYPE:
+		if (plane > 0) {
+			return fprops->width / 2;
+		} else {
+			return fprops->width;
+		}
+	case XMA_YUV420P10LE_FMT_TYPE:
+		if (plane == 0) {
+			return fprops->width * 2;
+		} else {
+			return fprops->width;
+		}
+	case XMA_NV12_FMT_TYPE:
+	case XMA_RGB24_P_FMT_TYPE:
+		return fprops->width;
+	case XMA_P010LE_FMT_TYPE:
+		return fprops->width * 2;
+	case XMA_PACKED10_FMT_TYPE:
+		return ((fprops->width + 2) / 3) * 4;
+	default:
+		xma_logmsg(ctx->log, XMA_ERROR_LOG, ctx->app_name,
+			   "Pixel format not supported!\n");
+		return XMA_ERROR;
+	}
 }
 
 int32_t ama_initialize_sdk(AmaCtx *ctx)
