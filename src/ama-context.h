@@ -282,6 +282,8 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 
 int32_t ama_initialize_sdk(AmaCtx *ctx);
 
+int get_valid_line_size(AmaCtx *ctx, int plane);
+
 int32_t context_destroy(AmaCtx *ctx);
 
 #endif // _AMA_CONTEXT_H_

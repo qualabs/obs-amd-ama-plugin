@@ -31,7 +31,7 @@ int32_t scaler_reserve(AmaCtx *ctx);
 
 int32_t scaler_create(AmaCtx *ctx);
 
-int32_t scaler_process_frame(struct encoder_frame *frame, AmaCtx *ctx);
+int32_t scaler_process_frame(AmaCtx *ctx);
 
 int32_t scaler_destroy(AmaCtx *ctx);
 

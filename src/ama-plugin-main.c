@@ -83,12 +83,17 @@ const char *ama_get_name_av1(void *type_data)
 AmaCtx *ama_create(obs_data_t *settings, obs_encoder_t *encoder, int32_t codec)
 {
 	AmaCtx *ctx = ama_create_context(settings, encoder, codec);
+	bool is_scaling = obs_data_get_bool(ctx->settings, "enable_scaling");
 	obs_encoder_set_preferred_video_format(encoder, VIDEO_FORMAT_I420);
 	encoder_reserve(ctx);
-	scaler_reserve(ctx);
+	if (is_scaling) {
+		scaler_reserve(ctx);
+	}
 	ama_initialize_sdk(ctx);
 	filter_create(ctx);
-	scaler_create(ctx);
+	if (is_scaling) {
+		scaler_create(ctx);
+	}
 	encoder_create(ctx);
 	return ctx;
 }
@@ -187,7 +192,10 @@ void ama_destroy(void *data)
 	obs_log(LOG_INFO, "ama_destroy");
 	AmaCtx *ctx = data;
 	filter_destroy(ctx);
-	//scaler_destroy(ctx);
+	bool is_scaling = obs_data_get_bool(ctx->settings, "enable_scaling");
+	if (is_scaling) {
+		scaler_destroy(ctx);
+	}
 	encoder_destroy(ctx);
 	context_destroy(ctx);
 }
@@ -198,7 +206,10 @@ bool ama_encode(void *data, struct encoder_frame *frame,
 	bool res = true;
 	AmaCtx *ctx = (AmaCtx *)data;
 	res &= filter_upload_frame(frame, ctx) != XMA_ERROR;
-	//res &= scaler_process_frame(ctx) != XMA_ERROR;
+	bool is_scaling = obs_data_get_bool(ctx->settings, "enable_scaling");
+	if (is_scaling) {
+		res &= scaler_process_frame(ctx) != XMA_ERROR;
+	}
 	res &= encoder_process_frame(packet, received_packet, ctx) != XMA_ERROR;
 	return res;
 }
