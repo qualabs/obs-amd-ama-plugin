@@ -3,7 +3,13 @@
 
 int get_valid_lines(AmaCtx *ctx, int plane)
 {
-	XmaFrameProperties *fprops = &ctx->enc_frame_props;
+	XmaFrameProperties *fprops;
+	bool is_scaling = obs_data_get_bool(ctx->settings, "enable_scaling");
+	if (is_scaling) {
+		fprops = &ctx->scaler_input_fprops;
+	} else {
+		fprops = &ctx->enc_frame_props;
+	}
 	switch (fprops->sw_format) {
 	case XMA_YUV420P_FMT_TYPE:
 	case XMA_YUV420P10LE_FMT_TYPE:
@@ -24,16 +30,24 @@ int get_valid_lines(AmaCtx *ctx, int plane)
 	}
 }
 
-int32_t filter_get_xma_props(EncoderProperties *enc_props,
-			     XmaFilterProperties *xma_upload_props)
+int32_t filter_get_xma_props(AmaCtx *ctx)
 {
+	EncoderProperties *enc_props = &ctx->enc_props;
+	ScalerProps *scaler_props = &ctx->abr_params;
+	XmaFilterProperties *xma_upload_props = &ctx->xma_upload_props;
+	bool is_scaling = obs_data_get_bool(ctx->settings, "enable_scaling");
 	xma_upload_props->hwfilter_type = XMA_UPLOAD_FILTER_TYPE;
 	xma_upload_props->param_cnt = 0;
 	xma_upload_props->params = NULL;
 	xma_upload_props->input.format = enc_props->pix_fmt;
 	xma_upload_props->input.sw_format = enc_props->pix_fmt;
-	xma_upload_props->input.width = enc_props->width;
-	xma_upload_props->input.height = enc_props->height;
+	if (is_scaling) {
+		xma_upload_props->input.width = scaler_props->width;
+		xma_upload_props->input.height = scaler_props->height;
+	} else {
+		xma_upload_props->input.width = enc_props->width;
+		xma_upload_props->input.height = enc_props->height;
+	}
 	xma_upload_props->input.framerate.numerator = enc_props->fps;
 	xma_upload_props->input.framerate.denominator = 1;
 	xma_upload_props->output.format = XMA_VPE_FMT_TYPE;
@@ -49,25 +63,26 @@ int32_t filter_create(AmaCtx *ctx)
 {
 	ama_initialize_sdk(ctx);
 	ctx->xma_upload_props.handle = ctx->handle;
-	filter_get_xma_props(&ctx->enc_props, &ctx->xma_upload_props);
+	filter_get_xma_props(ctx);
 	ctx->upload_session = xma_filter_session_create(&ctx->xma_upload_props);
 	return XMA_SUCCESS;
 }
 
 int32_t filter_upload_frame(struct encoder_frame *frame, AmaCtx *ctx)
 {
-	ctx->enc_frame_props.format = XMA_YUV420P_FMT_TYPE;
 	XmaFrame **input_x_frame;
 	XmaFrameProperties *frame_properties;
 	bool is_scaling = obs_data_get_bool(ctx->settings, "enable_scaling");
-	if (!is_scaling) {
-		input_x_frame = &ctx->encoder_input_xframe;
-		frame_properties = &ctx->enc_frame_props;
-	} else {
+	// If scaling enabled use the scaler_input_xframe otherwise use
+	// encoder_input_xframe with the respective props
+	if (is_scaling) {
 		input_x_frame = &ctx->scaler_input_xframe;
 		frame_properties = &ctx->scaler_input_fprops;
+	} else {
+		input_x_frame = &ctx->encoder_input_xframe;
+		frame_properties = &ctx->enc_frame_props;
 	}
-
+	frame_properties->format = XMA_YUV420P_FMT_TYPE;
 	*input_x_frame = xma_frame_alloc(ctx->handle, frame_properties, false);
 	int32_t num_planes =
 		xma_frame_planes_get(ctx->handle, frame_properties);

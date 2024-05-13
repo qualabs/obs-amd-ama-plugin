@@ -132,29 +132,31 @@ int32_t scaler_create(AmaCtx *ctx)
 
 int32_t scaler_process_frame(AmaCtx *ctx)
 {
+	ctx->scaler_input_fprops.format = XMA_VPE_FMT_TYPE;
 	int send_rc, recv_rc;
-	ctx->scaler_input_fprops.sw_format = XMA_NV12_FMT_TYPE;
-	XmaFrame *input_xframe = ctx->scaler_input_xframe;
-	send_rc = xma_scaler_session_send_frame(ctx->scl_session, input_xframe);
+	XmaFrame **encoder_xframe = &ctx->encoder_input_xframe;
+	XmaFrame *scaler_xframe = ctx->scaler_input_xframe;
+	send_rc =
+		xma_scaler_session_send_frame(ctx->scl_session, scaler_xframe);
 	if (send_rc == XMA_SUCCESS) {
-		ctx->encoder_input_xframe = xma_frame_alloc(
-			ctx->handle, &ctx->enc_frame_props, true);
-		if (!ctx->encoder_input_xframe) {
+		*encoder_xframe = xma_frame_alloc(ctx->handle,
+						  &ctx->enc_frame_props, true);
+		if (!encoder_xframe) {
 			return XMA_ERROR;
 		}
 
 		uint32_t counter = 1000000;
 		do {
 			recv_rc = xma_scaler_session_recv_frame_list(
-				ctx->scl_session, &ctx->encoder_input_xframe);
+				ctx->scl_session, encoder_xframe);
 			if (recv_rc == XMA_TRY_AGAIN) {
 				usleep(100);
 			}
 		} while ((recv_rc == XMA_TRY_AGAIN) && (--counter > 0));
 
 		if (recv_rc == XMA_EOS) {
-			xma_frame_free(ctx->encoder_input_xframe);
-			ctx->encoder_input_xframe = NULL;
+			xma_frame_free(*encoder_xframe);
+			*encoder_xframe = NULL;
 
 			send_rc = XMA_EOS;
 			ctx->scl_session = 0;
@@ -179,9 +181,6 @@ int32_t scaler_destroy(AmaCtx *ctx)
 	}
 	if (ctx->scl_session) {
 		xma_scaler_session_destroy(ctx->scl_session);
-	}
-	if (ctx->handle) {
-		xma_release(ctx->handle);
 	}
 	if (ctx->log) {
 		xma_log_release(ctx->log);

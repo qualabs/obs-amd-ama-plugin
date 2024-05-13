@@ -91,10 +91,10 @@ AmaCtx *ama_create(obs_data_t *settings, obs_encoder_t *encoder, int32_t codec)
 	}
 	ama_initialize_sdk(ctx);
 	filter_create(ctx);
+	encoder_create(ctx);
 	if (is_scaling) {
 		scaler_create(ctx);
 	}
-	encoder_create(ctx);
 	return ctx;
 }
 

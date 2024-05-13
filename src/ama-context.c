@@ -141,16 +141,20 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 		ctx->scaler_input_fprops.height = voi->height;
 		ctx->scaler_input_fprops.format = XMA_VPE_FMT_TYPE;
 		ctx->scaler_input_fprops.sw_format = XMA_YUV420P_FMT_TYPE;
-		ctx->scaler_input_fprops.bits_per_pixel = 8;
-		for (int i = 0; i < 3; i++) {
-			ctx->scaler_input_fprops.linesize[i] =
-				get_valid_line_size(ctx, i);
+		int32_t planes = xma_frame_planes_get(
+			ctx->handle, &ctx->scaler_input_fprops);
+		int32_t plane;
+		for (plane = 0; plane < planes; plane++) {
+			ctx->scaler_input_fprops.linesize[plane] =
+				xma_frame_get_plane_stride(
+					ctx->handle, &ctx->scaler_input_fprops,
+					plane);
 		}
-		// ctx->scaler_input_fprops.sw_format = XMA_VPE_FMT_TYPE;
 		enc_props->width = scaler_res.width;
 		enc_props->height = scaler_res.height;
 		scale_props->width = voi->width;
 		scale_props->height = voi->height;
+		scale_props->pix_fmt = XMA_YUV420P_FMT_TYPE;
 	}
 	return ctx;
 }
