@@ -136,6 +136,7 @@ int32_t scaler_process_frame(AmaCtx *ctx)
 	int send_rc, recv_rc;
 	XmaFrame **encoder_xframe = &ctx->encoder_input_xframe;
 	XmaFrame *scaler_xframe = ctx->scaler_input_xframe;
+	//Send scaler xframe
 	send_rc =
 		xma_scaler_session_send_frame(ctx->scl_session, scaler_xframe);
 	if (send_rc == XMA_SUCCESS) {
@@ -145,6 +146,7 @@ int32_t scaler_process_frame(AmaCtx *ctx)
 			return XMA_ERROR;
 		}
 
+		//Receive with the encoder xframe
 		uint32_t counter = 1000000;
 		do {
 			recv_rc = xma_scaler_session_recv_frame_list(

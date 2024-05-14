@@ -33,7 +33,6 @@ int get_valid_lines(AmaCtx *ctx, int plane)
 int32_t filter_get_xma_props(AmaCtx *ctx)
 {
 	EncoderProperties *enc_props = &ctx->enc_props;
-	ScalerProps *scaler_props = &ctx->abr_params;
 	XmaFilterProperties *xma_upload_props = &ctx->xma_upload_props;
 	bool is_scaling = obs_data_get_bool(ctx->settings, "enable_scaling");
 	xma_upload_props->hwfilter_type = XMA_UPLOAD_FILTER_TYPE;
@@ -42,6 +41,7 @@ int32_t filter_get_xma_props(AmaCtx *ctx)
 	xma_upload_props->input.format = enc_props->pix_fmt;
 	xma_upload_props->input.sw_format = enc_props->pix_fmt;
 	if (is_scaling) {
+		ScalerProps *scaler_props = &ctx->abr_params;
 		xma_upload_props->input.width = scaler_props->width;
 		xma_upload_props->input.height = scaler_props->height;
 	} else {
