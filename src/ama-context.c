@@ -1,5 +1,63 @@
 #include <ama-context.h>
 
+ScalerResolution getResolution(int scalerConstant)
+{
+	ScalerResolution resolution;
+
+	switch (scalerConstant) {
+	case 0: // SCALER_RES_1920_1080
+		resolution.height = 1080;
+		resolution.width = 1920;
+		break;
+	case 1: // SCALER_RES_1664_936
+		resolution.height = 936;
+		resolution.width = 1664;
+		break;
+	case 2: // SCALER_RES_1536_864
+		resolution.height = 864;
+		resolution.width = 1536;
+		break;
+	case 3: // SCALER_RES_1280_720
+		resolution.height = 720;
+		resolution.width = 1280;
+		break;
+	case 4: // SCALER_RES_1152_648
+		resolution.height = 648;
+		resolution.width = 1152;
+		break;
+	case 5: // SCALER_RES_1096_616
+		resolution.height = 616;
+		resolution.width = 1096;
+		break;
+	case 6: // SCALER_RES_960_540
+		resolution.height = 540;
+		resolution.width = 960;
+		break;
+	case 7: // SCALER_RES_852_480
+		resolution.height = 480;
+		resolution.width = 852;
+		break;
+	case 8: // SCALER_RES_768_432
+		resolution.height = 432;
+		resolution.width = 768;
+		break;
+	case 9: // SCALER_RES_698_392
+		resolution.height = 392;
+		resolution.width = 698;
+		break;
+	case 10: // SCALER_RES_640_360
+		resolution.height = 360;
+		resolution.width = 640;
+		break;
+	default:
+		resolution.height = 0;
+		resolution.width = 0;
+		break;
+	}
+
+	return resolution;
+}
+
 AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 			   int32_t codec)
 {
@@ -8,9 +66,11 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 	ctx->enc_handle = enc_handle;
 	ctx->settings = settings;
 	EncoderProperties *enc_props = &ctx->enc_props;
+	ScalerProps *scale_props = &ctx->abr_params;
 	video_t *video = obs_encoder_video(ctx->enc_handle);
 	const struct video_output_info *voi = video_output_get_info(video);
 	obs_data_t *custom_settings = ctx->settings;
+	ScalerResolution scaler_res;
 	int control_rate =
 		(int)obs_data_get_int(custom_settings, "control_rate");
 	/* Initialize the encoder parameters */
@@ -73,7 +133,66 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 	enc_props->tune_metrics = 1;
 	enc_props->dynamic_gop = -1;
 	enc_props->pix_fmt = XMA_YUV420P_FMT_TYPE;
+	bool is_scaling = obs_data_get_bool(custom_settings, "enable_scaling");
+	if (is_scaling) {
+		scaler_res = getResolution((int)obs_data_get_int(
+			custom_settings, "scaler_resolution"));
+		ctx->scaler_input_fprops.width = voi->width;
+		ctx->scaler_input_fprops.height = voi->height;
+		ctx->scaler_input_fprops.format = XMA_VPE_FMT_TYPE;
+		ctx->scaler_input_fprops.sw_format = XMA_YUV420P_FMT_TYPE;
+		int32_t planes = xma_frame_planes_get(
+			ctx->handle, &ctx->scaler_input_fprops);
+		int32_t plane;
+		for (plane = 0; plane < planes; plane++) {
+			ctx->scaler_input_fprops.linesize[plane] =
+				xma_frame_get_plane_stride(
+					ctx->handle, &ctx->scaler_input_fprops,
+					plane);
+		}
+		enc_props->width = scaler_res.width;
+		enc_props->height = scaler_res.height;
+		scale_props->width = voi->width;
+		scale_props->height = voi->height;
+		scale_props->pix_fmt = XMA_YUV420P_FMT_TYPE;
+	}
 	return ctx;
+}
+
+int get_valid_line_size(AmaCtx *ctx, int plane)
+{
+	XmaFrameProperties *fprops;
+	bool is_scaling = obs_data_get_bool(ctx->settings, "enable_scaling");
+	if (!is_scaling) {
+		fprops = &ctx->enc_frame_props;
+	} else {
+		fprops = &ctx->scaler_input_fprops;
+	}
+	switch (fprops->sw_format) {
+	case XMA_YUV420P_FMT_TYPE:
+		if (plane > 0) {
+			return fprops->width / 2;
+		} else {
+			return fprops->width;
+		}
+	case XMA_YUV420P10LE_FMT_TYPE:
+		if (plane == 0) {
+			return fprops->width * 2;
+		} else {
+			return fprops->width;
+		}
+	case XMA_NV12_FMT_TYPE:
+	case XMA_RGB24_P_FMT_TYPE:
+		return fprops->width;
+	case XMA_P010LE_FMT_TYPE:
+		return fprops->width * 2;
+	case XMA_PACKED10_FMT_TYPE:
+		return ((fprops->width + 2) / 3) * 4;
+	default:
+		xma_logmsg(ctx->log, XMA_ERROR_LOG, ctx->app_name,
+			   "Pixel format not supported!\n");
+		return XMA_ERROR;
+	}
 }
 
 int32_t ama_initialize_sdk(AmaCtx *ctx)

@@ -13,7 +13,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <unistd.h>
 #include "ama-scaler.h"
+#include "ama-context.h"
 
 #define XLNX_SCALER_APP_MODULE "scaler_app"
 
@@ -117,6 +119,8 @@ int32_t scaler_create(AmaCtx *ctx)
 	int32_t ret = XMA_SUCCESS;
 	ret = scal_create_xma_props(ctx, 0, &ctx->abr_xma_props);
 	ctx->abr_xma_props.handle = ctx->handle;
+	ctx->abr_xma_props.num_outputs = 1;
+	ctx->abr_xma_props.hwscaler_type = XMA_ABR_SCALER_TYPE;
 	ctx->scl_session = xma_scaler_session_create(&ctx->abr_xma_props);
 	if (!ctx->scl_session) {
 		xma_logmsg(ctx->log, XMA_ERROR_LOG, XLNX_SCALER_APP_MODULE,
@@ -126,11 +130,43 @@ int32_t scaler_create(AmaCtx *ctx)
 	return ret;
 }
 
-int32_t scaler_process_frame(struct encoder_frame *frame, AmaCtx *ctx)
+int32_t scaler_process_frame(AmaCtx *ctx)
 {
-	(void)frame;
-	(void)ctx;
-	return 0;
+	ctx->scaler_input_fprops.format = XMA_VPE_FMT_TYPE;
+	int send_rc, recv_rc;
+	XmaFrame **encoder_xframe = &ctx->encoder_input_xframe;
+	XmaFrame *scaler_xframe = ctx->scaler_input_xframe;
+	//Send scaler xframe
+	send_rc =
+		xma_scaler_session_send_frame(ctx->scl_session, scaler_xframe);
+	if (send_rc == XMA_SUCCESS) {
+		*encoder_xframe = xma_frame_alloc(ctx->handle,
+						  &ctx->enc_frame_props, true);
+		if (!encoder_xframe) {
+			return XMA_ERROR;
+		}
+
+		//Receive with the encoder xframe
+		uint32_t counter = 1000000;
+		do {
+			recv_rc = xma_scaler_session_recv_frame_list(
+				ctx->scl_session, encoder_xframe);
+			if (recv_rc == XMA_TRY_AGAIN) {
+				usleep(100);
+			}
+		} while ((recv_rc == XMA_TRY_AGAIN) && (--counter > 0));
+
+		if (recv_rc == XMA_EOS) {
+			xma_frame_free(*encoder_xframe);
+			*encoder_xframe = NULL;
+
+			send_rc = XMA_EOS;
+			ctx->scl_session = 0;
+		} else if (recv_rc != XMA_SUCCESS) {
+			return XMA_ERROR;
+		}
+	}
+	return XMA_SUCCESS;
 }
 
 void scal_cleanup_props(XmaScalerProperties *scaler_xma_props)
@@ -147,9 +183,6 @@ int32_t scaler_destroy(AmaCtx *ctx)
 	}
 	if (ctx->scl_session) {
 		xma_scaler_session_destroy(ctx->scl_session);
-	}
-	if (ctx->handle) {
-		xma_release(ctx->handle);
 	}
 	if (ctx->log) {
 		xma_log_release(ctx->log);

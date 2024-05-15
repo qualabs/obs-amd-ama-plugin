@@ -173,6 +173,23 @@ typedef enum HevcProfiles {
 #define ENC_RC_MODE_DEFAULT -1
 #define ENC_DEFAULT_LEVEL 0
 
+#define SCALER_RES_1920_1080 0
+#define SCALER_RES_1664_936 1
+#define SCALER_RES_1536_864 2
+#define SCALER_RES_1280_720 3
+#define SCALER_RES_1152_648 4
+#define SCALER_RES_1096_616 5
+#define SCALER_RES_960_540 6
+#define SCALER_RES_852_480 7
+#define SCALER_RES_768_432 8
+#define SCALER_RES_698_392 9
+#define SCALER_RES_640_360 10
+
+typedef struct {
+	uint32_t height;
+	uint32_t width;
+} ScalerResolution;
+
 typedef struct ScalerProps {
 	XmaFormatType pix_fmt;
 	int32_t bits_per_pixel;
@@ -264,6 +281,8 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 			   int32_t codec);
 
 int32_t ama_initialize_sdk(AmaCtx *ctx);
+
+int get_valid_line_size(AmaCtx *ctx, int plane);
 
 int32_t context_destroy(AmaCtx *ctx);
 
