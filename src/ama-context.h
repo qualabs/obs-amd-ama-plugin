@@ -188,7 +188,7 @@ typedef enum HevcProfiles {
 typedef struct {
 	uint32_t height;
 	uint32_t width;
-} scaler_resolution;
+} ScalerResolution;
 
 typedef struct ScalerProps {
 	XmaFormatType pix_fmt;

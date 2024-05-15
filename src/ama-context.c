@@ -1,8 +1,8 @@
 #include <ama-context.h>
 
-scaler_resolution getResolution(int scalerConstant)
+ScalerResolution getResolution(int scalerConstant)
 {
-	scaler_resolution resolution;
+	ScalerResolution resolution;
 
 	switch (scalerConstant) {
 	case 0: // SCALER_RES_1920_1080
@@ -70,7 +70,7 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 	video_t *video = obs_encoder_video(ctx->enc_handle);
 	const struct video_output_info *voi = video_output_get_info(video);
 	obs_data_t *custom_settings = ctx->settings;
-	scaler_resolution scaler_res;
+	ScalerResolution scaler_res;
 	int control_rate =
 		(int)obs_data_get_int(custom_settings, "control_rate");
 	/* Initialize the encoder parameters */
