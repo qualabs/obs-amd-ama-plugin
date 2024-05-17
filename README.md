@@ -115,8 +115,11 @@ After running these two commands you will have a build folder named `build_x86_6
   - (fast) Allows for increase in total throughput from 4kp60 to 4kp75 , when 2 or more channels are used. Does not apply to AV1 -type 1 encoding. Not applicable under ULL setting. Note lower VQ than medium preset is to be expected.
   - (medium) Full density with medium VQ - default
   - (slow) High VQ at lower density. Applicable to 10 bit contents only.
+* Scale output: Enables the scaling functionality.
+* Resolution: When scaling is enabled configures the scaling resolution.
 
 ![av1 screenshot](images/av1_screenshot.png)
+![av1 scaling screenshot](images/av1_scale_screenshot.png)
 
 
 ### AVC/H.264 & HEVC/H.265
@@ -137,10 +140,12 @@ After running these two commands you will have a build folder named `build_x86_6
   - (fast) Allows for increase in total throughput from 4kp60 to 4kp75 , when 2 or more channels are used. Does not apply to AV1 -type 1 encoding. Not applicable under ULL setting. Note lower VQ than medium preset is to be expected.
   - (medium) Full density with medium VQ - default
   - (slow) High VQ at lower density. Applicable to 10 bit contents only.
+* Scale output: Enables the scaling functionality.
+* Resolution: When scaling is enabled configures the scaling resolution.
 
 ![h264 screenshot](images/h264_screenshot.png)
 
-![h264 screenshot](images/h264_look_ahead_screenshot.png)
+![h264 screenshot](images/h264_scale_screenshot.png)
 
 ![hevc screenshot](images/hevc_screenshot.png)
 
