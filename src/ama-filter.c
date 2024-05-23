@@ -83,22 +83,15 @@ int32_t filter_upload_frame(struct encoder_frame *frame, AmaCtx *ctx)
 		frame_properties = &ctx->enc_frame_props;
 	}
 	frame_properties->format = XMA_YUV420P_FMT_TYPE;
-	*input_x_frame = xma_frame_alloc(ctx->handle, frame_properties, false);
 	int32_t num_planes =
 		xma_frame_planes_get(ctx->handle, frame_properties);
+	for (int plane = 0; plane < num_planes; plane++) {
+		frame_properties->linesize[plane] = frame->linesize[plane];
+	}
+	*input_x_frame = xma_frame_alloc(ctx->handle, frame_properties, false);
 	for (int i = 0; i < num_planes; i++) {
 		(*input_x_frame)->data[i].buffer_type = XMA_HOST_BUFFER_TYPE;
-		uint8_t *p = (*input_x_frame)->data[i].host;
-		int32_t linesize = get_valid_line_size(ctx, i);
-		if (linesize == XMA_ERROR) {
-			return XMA_ERROR;
-		}
-		int32_t lines = get_valid_lines(ctx, i);
-		int total_line_size = frame_properties->linesize[i];
-		for (int h = 0; h < lines; h++) {
-			memcpy(p, frame->data[i] + h * linesize, linesize);
-			p += total_line_size;
-		}
+		(*input_x_frame)->data[i].host = frame->data[i];
 	}
 	int ret = INT32_MIN;
 	da_push_back(ctx->dts_array, &frame->pts);
