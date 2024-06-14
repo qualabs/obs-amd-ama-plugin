@@ -153,7 +153,7 @@ typedef enum HevcProfiles {
 } HevcProfiles;
 
 #define DEFAULT_DEVICE_ID 0
-#define DEFAULT_SLICE_ID 0
+#define DEFAULT_SLICE_ID -1
 
 #define ENC_DEFAULT_DEVICE_TYPE XMA_ENC_DEVICE_TYPE_1
 #define ENC_SUPPORTED_MIN_BITRATE -1

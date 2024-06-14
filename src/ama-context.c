@@ -123,7 +123,10 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 	enc_props->qp_mode = ENC_DEFAULT_QP_MODE;
 	enc_props->preset = XMA_ENC_PRESET_DEFAULT;
 	enc_props->cores = XMA_ENC_CORES_DEFAULT;
-	enc_props->profile = (int)obs_data_get_int(custom_settings, "profile");
+	enc_props->profile =
+		ctx->codec != ENCODER_ID_AV1
+			? (int)obs_data_get_int(custom_settings, "profile")
+			: ENC_PROFILE_DEFAULT;
 	enc_props->level = ENC_DEFAULT_LEVEL;
 	enc_props->tier = -1;
 	enc_props->lookahead_depth =
