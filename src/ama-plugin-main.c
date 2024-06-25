@@ -471,7 +471,7 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 	obs_property_int_set_suffix(p, " Kbps");
 
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
-				   ENC_SUPPORTED_MAX_AV1_QP, 1);
+				   ENC_SUPPORTED_MAX_QP, 1);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);

@@ -151,30 +151,31 @@ void enc_free_xma_props(XmaEncoderProperties *xma_enc_props)
 int32_t encoder_reserve(AmaCtx *ctx)
 {
 	da_init(ctx->dts_array);
-	XrmInterfaceProperties xrm_props;
-	memset(&xrm_props, 0, sizeof(xrm_props));
+	XrmEncodePropsV2 *xrm_props =
+		(XrmEncodePropsV2 *)xrm_props_create(XRM_IP_ENCODER);
 
-	xrm_props.width = ctx->enc_props.width;
-	xrm_props.height = ctx->enc_props.height;
-	xrm_props.fps_num = ctx->enc_props.fps;
-	xrm_props.fps_den = 1;
-	xrm_props.enc_cores = ctx->enc_props.cores;
+	xrm_props->input.width = ctx->enc_props.width;
+	xrm_props->input.height = ctx->enc_props.height;
+	xrm_props->input.fps_num = ctx->enc_props.fps;
+	xrm_props->input.fps_den = 1;
+	xrm_props->is_la_enabled = ctx->enc_props.lookahead_depth != 0;
+	xrm_props->enc_cores = ctx->enc_props.cores;
 	switch (ctx->enc_props.preset) {
 	case XMA_ENC_PRESET_SLOW:
-		strcpy(xrm_props.preset, "slow");
+		strcpy(xrm_props->preset, "slow");
 	case XMA_ENC_PRESET_MEDIUM:
-		strcpy(xrm_props.preset, "medium");
+		strcpy(xrm_props->preset, "medium");
 	case XMA_ENC_PRESET_FAST:
-		strcpy(xrm_props.preset, "fast");
+		strcpy(xrm_props->preset, "fast");
 	default:
-		strcpy(xrm_props.preset, "medium");
+		strcpy(xrm_props->preset, "medium");
 	}
-	xrm_props.is_la_enabled = ctx->enc_props.lookahead_depth != 0;
 	bool isAV1 = ctx->codec == ENCODER_ID_AV1;
+	xrm_props->is_av1_type1 = isAV1;
+	xrm_props->slice_id = ctx->enc_props.slice;
+	xrm_props->dev_index = ctx->enc_props.device_id;
 	ctx->xrm_enc_ctx.slice_id = ctx->enc_props.slice;
-
-	return xrm_enc_reserve(&ctx->xrm_enc_ctx, ctx->enc_props.device_id,
-			       ctx->enc_props.slice, isAV1, false, &xrm_props);
+	return xrm_enc_reserve_v2(&ctx->xrm_enc_ctx, xrm_props);
 }
 
 int32_t encoder_create(AmaCtx *ctx)
@@ -361,7 +362,7 @@ int32_t encoder_destroy(AmaCtx *ctx)
 		xma_enc_session_destroy(ctx->enc_session);
 		ctx->enc_session = NULL;
 	}
-	xrm_enc_release(&ctx->xrm_enc_ctx);
+	xrm_enc_release_v2(&ctx->xrm_enc_ctx);
 
 	enc_free_xma_props(&ctx->xma_enc_props);
 

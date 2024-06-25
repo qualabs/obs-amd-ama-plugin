@@ -101,20 +101,20 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 							"keyint_sec")
 			: enc_props->fps * 2;
 	enc_props->min_qp = ENC_DEFAULT_MIN_QP;
-	enc_props->max_qp = ctx->codec == ENCODER_ID_AV1
-				    ? ENC_SUPPORTED_MAX_AV1_QP
-				    : ENC_DEFAULT_MAX_QP;
+	enc_props->max_qp = ctx->codec == ENCODER_ID_AV1 ? ENC_SUPPORTED_MAX_QP
+							 : ENC_DEFAULT_MAX_QP;
 	enc_props->num_bframes =
 		obs_data_get_bool(custom_settings, "lookahead")
 			? (int)obs_data_get_int(custom_settings, "b_frames")
 			: ENC_MIN_NUM_B_FRAMES;
 	enc_props->spat_aq_gain = ENC_AQ_GAIN_NOT_USED;
 	enc_props->temp_aq_gain = ENC_AQ_GAIN_NOT_USED;
+	enc_props->latency_ms = ENC_DEFAULT_LATENCY_MS;
+	enc_props->bufsize = ENC_DEFAULT_BUFSIZE;
 	enc_props->spatial_aq = ENC_DEFAULT_SPATIAL_AQ;
 	enc_props->temporal_aq = ENC_DEFAULT_TEMPORAL_AQ;
 	enc_props->slice = DEFAULT_SLICE_ID;
-	enc_props->qp = (control_rate == ENC_CRF_ENABLE_ALIAS ||
-			 control_rate == ENC_RC_MODE_CONSTANT_QP)
+	enc_props->qp = (control_rate == ENC_RC_MODE_CONSTANT_QP)
 				? (int)obs_data_get_int(custom_settings, "qp")
 				: ENC_DEFAULT_MIN_QP;
 	enc_props->rc_mode = control_rate != ENC_CRF_ENABLE_ALIAS
