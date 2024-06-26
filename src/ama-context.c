@@ -90,8 +90,9 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 				control_rate == ENC_RC_MODE_CABR
 			? (int)obs_data_get_int(custom_settings, "max_bitrate")
 			: ENC_DEFAULT_MAX_BITRATE;
-	enc_props->crf = control_rate == ENC_CRF_ENABLE_ALIAS ? ENC_CRF_ENABLE
-							      : ENC_CRF_DISABLE;
+	enc_props->crf = control_rate == ENC_CRF_ENABLE_ALIAS
+				 ? (int)obs_data_get_int(custom_settings, "crf")
+				 : ENC_CRF_DEFAULT;
 	enc_props->force_idr = ENC_IDR_ENABLE;
 	enc_props->fps = voi->fps_num / voi->fps_den;
 	enc_props->gop_size =
@@ -129,10 +130,7 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 			: ENC_PROFILE_DEFAULT;
 	enc_props->level = ENC_DEFAULT_LEVEL;
 	enc_props->tier = -1;
-	enc_props->lookahead_depth =
-		obs_data_get_bool(custom_settings, "lookahead")
-			? ENC_DEFAULT_LOOKAHEAD_DEPTH
-			: 0;
+	enc_props->lookahead_depth = -1;
 	enc_props->tune_metrics = 1;
 	enc_props->dynamic_gop = -1;
 	enc_props->pix_fmt = XMA_YUV420P_FMT_TYPE;
