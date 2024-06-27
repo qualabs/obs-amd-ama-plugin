@@ -128,7 +128,7 @@ AmaCtx *ama_create_context(obs_data_t *settings, obs_encoder_t *enc_handle,
 		ctx->codec != ENCODER_ID_AV1
 			? (int)obs_data_get_int(custom_settings, "profile")
 			: ENC_PROFILE_DEFAULT;
-	enc_props->level = ENC_DEFAULT_LEVEL;
+	enc_props->level = (int)obs_data_get_int(custom_settings, "level");
 	enc_props->tier = -1;
 	enc_props->lookahead_depth = -1;
 	enc_props->tune_metrics = 1;

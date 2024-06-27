@@ -185,6 +185,9 @@ void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 void *ama_create_av1(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_av1");
+	if (!ama_validate_encoding_level(settings, encoder)) {
+		return NULL;
+	}
 	return ama_create(settings, encoder, ENCODER_ID_AV1);
 }
 
@@ -343,6 +346,10 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
 	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
 	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
+	obs_property_list_add_int(list, "5.3", ENC_LEVEL_53);
+	obs_property_list_add_int(list, "6.0", ENC_LEVEL_60);
+	obs_property_list_add_int(list, "6.1", ENC_LEVEL_61);
+	obs_property_list_add_int(list, "6.2", ENC_LEVEL_62);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
@@ -427,6 +434,10 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
 	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
 	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
+	obs_property_list_add_int(list, "5.3", ENC_LEVEL_53);
+	obs_property_list_add_int(list, "6.0", ENC_LEVEL_60);
+	obs_property_list_add_int(list, "6.1", ENC_LEVEL_61);
+	obs_property_list_add_int(list, "6.2", ENC_LEVEL_62);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
@@ -484,6 +495,21 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 
 	p = obs_properties_add_int(props, "crf", TEXT_CRF, ENC_MIN_CRF,
 				   ENC_MAX_CRF, 1);
+
+	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "3.1", ENC_LEVEL_31);
+	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
+	obs_property_list_add_int(list, "4.1", ENC_LEVEL_41);
+	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
+	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
+	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
+	obs_property_list_add_int(list, "5.3", ENC_LEVEL_53);
+	obs_property_list_add_int(list, "6.0", ENC_LEVEL_60);
+	obs_property_list_add_int(list, "6.1", ENC_LEVEL_61);
+	obs_property_list_add_int(list, "6.2", ENC_LEVEL_62);
+	obs_property_list_add_int(list, "6.3", ENC_LEVEL_63);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
