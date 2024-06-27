@@ -346,16 +346,16 @@ int32_t encoder_process_frame(struct encoder_packet *packet,
 			   "Failed to receive frame %d\n",
 			   ctx->num_frames_received);
 	}
+	if (ctx->encoder_input_xframe) {
+		xma_frame_free(ctx->encoder_input_xframe);
+		ctx->encoder_input_xframe = NULL;
+	}
 	xma_data_buffer_free(output_xma_buffer);
 	return ret;
 }
 
 int32_t encoder_destroy(AmaCtx *ctx)
 {
-	if (ctx->encoder_input_xframe) {
-		xma_frame_free(ctx->encoder_input_xframe);
-		ctx->encoder_input_xframe = NULL;
-	}
 
 	if (ctx->enc_session != NULL) {
 		xma_enc_session_destroy(ctx->enc_session);
