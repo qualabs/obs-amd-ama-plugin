@@ -24,17 +24,17 @@
 #define ENC_MIN_GOP_SIZE -1
 #define ENC_MAX_GOP_SIZE 1000
 #define ENC_SUPPORTED_MIN_QP -1
-#define ENC_SUPPORTED_MAX_QP 51
-#define ENC_SUPPORTED_MAX_AV1_QP 255
+#define ENC_SUPPORTED_MAX_QP 63
 #define ENC_SPATIAL_AQ_DISABLE 0
 #define ENC_SPATIAL_AQ_ENABLE 1
 #define ENC_TEMPORAL_AQ_DISABLE 0
 #define ENC_TEMPORAL_AQ_ENABLE 1
 #define ENC_DEFAULT_TUNE_METRICS 1
 #define ENC_MAX_TUNE_METRICS 4
-#define ENC_CRF_ENABLE 1
 #define ENC_CRF_ENABLE_ALIAS 255
-#define ENC_CRF_DEFAULT ENC_CRF_DISABLE
+#define ENC_MIN_CRF -1
+#define ENC_MAX_CRF 63
+#define ENC_CRF_DEFAULT -1
 #define ENC_IDR_DISABLE 0
 
 #define ENC_MIN_LOOKAHEAD_DEPTH -1
@@ -83,6 +83,10 @@
 #define ENC_LEVEL_51 51
 #define ENC_LEVEL_52 52
 #define ENC_LEVEL_53 53
+#define ENC_LEVEL_60 60
+#define ENC_LEVEL_61 61
+#define ENC_LEVEL_62 62
+#define ENC_LEVEL_63 63
 
 #define ENC_PROFILE_AUTO -1
 #define ENC_PROFILE_DEFAULT ENC_PROFILE_AUTO
@@ -152,6 +156,14 @@ typedef enum HevcProfiles {
 	ENC_HEVC_MAIN10_INTRA
 } HevcProfiles;
 
+#define ENC_MIN_LATENCY_MS -1
+#define ENC_MAX_LATENCY_MS 60000
+#define ENC_DEFAULT_LATENCY_MS ENC_MIN_LATENCY_MS
+
+#define ENC_MIN_BUFSIZE XMA_ENC_BUFSIZE_MIN
+#define ENC_MAX_BUFSIZE XMA_ENC_BUFSIZE_MAX
+#define ENC_DEFAULT_BUFSIZE XMA_ENC_BUFSIZE_DEFAULT
+
 #define DEFAULT_DEVICE_ID 0
 #define DEFAULT_SLICE_ID -1
 
@@ -160,7 +172,6 @@ typedef enum HevcProfiles {
 #define ENC_SUPPORTED_MAX_BITRATE 3500000
 #define ENC_DEFAULT_BITRATE 2500
 #define ENC_DEFAULT_MAX_BITRATE ENC_SUPPORTED_MIN_BITRATE
-#define ENC_CRF_DISABLE 0
 #define ENC_IDR_ENABLE 1
 #define ENC_DEFAULT_FRAMERATE 30
 #define ENC_DEFAULT_GOP_SIZE 30
@@ -235,6 +246,8 @@ typedef struct {
 	int32_t tune_metrics;
 	int32_t dynamic_gop;
 	int32_t cores;
+	int32_t bufsize;
+	int32_t latency_ms;
 	char expert_options[2048];
 	int32_t latency_logging;
 } EncoderProperties;
@@ -251,7 +264,7 @@ typedef struct {
 	size_t num_frames_received;
 	XmaFilterSession *upload_session;
 	XmaEncoderSession *enc_session;
-	XrmEncodeContext xrm_enc_ctx;
+	XrmEncodeContextV2 xrm_enc_ctx;
 	EncoderProperties enc_props;
 	DynIdrFrames *dynamic_idr;
 	uint8_t *header_data;

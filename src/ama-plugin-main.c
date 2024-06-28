@@ -41,6 +41,7 @@ OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 #define TEXT_BITRATE obs_module_text("Bitrate")
 #define TEXT_MAX_BITRATE obs_module_text("Max Bitrate")
 #define TEXT_QP obs_module_text("QP")
+#define TEXT_CRF obs_module_text("CRF")
 #define TEXT_B_FRAMES obs_module_text("B Frames")
 #define TEXT_PROFILE obs_module_text("Profile")
 #define TEXT_LEVEL obs_module_text("Level")
@@ -184,6 +185,9 @@ void *ama_create_hevc(obs_data_t *settings, obs_encoder_t *encoder)
 void *ama_create_av1(obs_data_t *settings, obs_encoder_t *encoder)
 {
 	obs_log(LOG_INFO, "ama_create_av1");
+	if (!ama_validate_encoding_level(settings, encoder)) {
+		return NULL;
+	}
 	return ama_create(settings, encoder, ENCODER_ID_AV1);
 }
 
@@ -228,15 +232,17 @@ static bool rate_control_modified(obs_properties_t *ppts, obs_property_t *p,
 	int rc = (int)obs_data_get_int(settings, "control_rate");
 	bool cabr = rc == ENC_RC_MODE_CABR;
 	bool cabr_or_cbr = rc == ENC_RC_MODE_CABR || rc == ENC_RC_MODE_CBR;
-	bool cqp_or_crf = rc == ENC_RC_MODE_CONSTANT_QP ||
-			  rc == ENC_CRF_ENABLE_ALIAS;
+	bool cqp = rc == ENC_RC_MODE_CONSTANT_QP;
+	bool crf = rc == ENC_CRF_ENABLE_ALIAS;
 
 	p = obs_properties_get(ppts, "bitrate");
 	obs_property_set_visible(p, cabr_or_cbr);
 	p = obs_properties_get(ppts, "max_bitrate");
 	obs_property_set_visible(p, cabr);
 	p = obs_properties_get(ppts, "qp");
-	obs_property_set_visible(p, cqp_or_crf);
+	obs_property_set_visible(p, cqp);
+	p = obs_properties_get(ppts, "crf");
+	obs_property_set_visible(p, crf);
 
 	return true;
 }
@@ -317,6 +323,9 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
 				   ENC_SUPPORTED_MAX_QP, 1);
 
+	p = obs_properties_add_int(props, "crf", TEXT_CRF, ENC_MIN_CRF,
+				   ENC_MAX_CRF, 1);
+
 	list = obs_properties_add_list(props, "profile", TEXT_PROFILE,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
@@ -337,6 +346,10 @@ static obs_properties_t *obs_ama_props_h264(void *unused)
 	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
 	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
 	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
+	obs_property_list_add_int(list, "5.3", ENC_LEVEL_53);
+	obs_property_list_add_int(list, "6.0", ENC_LEVEL_60);
+	obs_property_list_add_int(list, "6.1", ENC_LEVEL_61);
+	obs_property_list_add_int(list, "6.2", ENC_LEVEL_62);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
@@ -399,6 +412,9 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
 				   ENC_SUPPORTED_MAX_QP, 1);
 
+	p = obs_properties_add_int(props, "crf", TEXT_CRF, ENC_MIN_CRF,
+				   ENC_MAX_CRF, 1);
+
 	list = obs_properties_add_list(props, "profile", TEXT_PROFILE,
 				       OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
@@ -418,6 +434,10 @@ static obs_properties_t *obs_ama_props_hevc(void *unused)
 	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
 	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
 	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
+	obs_property_list_add_int(list, "5.3", ENC_LEVEL_53);
+	obs_property_list_add_int(list, "6.0", ENC_LEVEL_60);
+	obs_property_list_add_int(list, "6.1", ENC_LEVEL_61);
+	obs_property_list_add_int(list, "6.2", ENC_LEVEL_62);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
@@ -471,7 +491,25 @@ static obs_properties_t *obs_ama_props_av1(void *unused)
 	obs_property_int_set_suffix(p, " Kbps");
 
 	p = obs_properties_add_int(props, "qp", TEXT_QP, ENC_SUPPORTED_MIN_QP,
-				   ENC_SUPPORTED_MAX_AV1_QP, 1);
+				   ENC_SUPPORTED_MAX_QP, 1);
+
+	p = obs_properties_add_int(props, "crf", TEXT_CRF, ENC_MIN_CRF,
+				   ENC_MAX_CRF, 1);
+
+	list = obs_properties_add_list(props, "level", TEXT_LEVEL,
+				       OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(list, "3.1", ENC_LEVEL_31);
+	obs_property_list_add_int(list, "4", ENC_LEVEL_40);
+	obs_property_list_add_int(list, "4.1", ENC_LEVEL_41);
+	obs_property_list_add_int(list, "5", ENC_LEVEL_50);
+	obs_property_list_add_int(list, "5.1", ENC_LEVEL_51);
+	obs_property_list_add_int(list, "5.2", ENC_LEVEL_52);
+	obs_property_list_add_int(list, "5.3", ENC_LEVEL_53);
+	obs_property_list_add_int(list, "6.0", ENC_LEVEL_60);
+	obs_property_list_add_int(list, "6.1", ENC_LEVEL_61);
+	obs_property_list_add_int(list, "6.2", ENC_LEVEL_62);
+	obs_property_list_add_int(list, "6.3", ENC_LEVEL_63);
 
 	p = obs_properties_add_int(props, "keyint_sec", TEXT_KEYINT_SEC, 0, 20,
 				   1);
@@ -507,6 +545,7 @@ static void obs_ama_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "control_rate", ENC_RC_MODE_CBR);
 	obs_data_set_default_int(settings, "level", ENC_DEFAULT_LEVEL);
 	obs_data_set_default_int(settings, "qp", ENC_DEFAULT_QP);
+	obs_data_set_default_int(settings, "crf", ENC_CRF_DEFAULT);
 	obs_data_set_default_int(settings, "profile", ENC_PROFILE_DEFAULT);
 	obs_data_set_default_bool(settings, "enable_scaling", false);
 	obs_data_set_default_int(settings, "scaler_resolution",
